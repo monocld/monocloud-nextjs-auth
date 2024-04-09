@@ -16,7 +16,10 @@ let instance: MonoCloudInstance;
 
 const getInstance = () => {
   if (!instance) {
-    instance = new MonoCloudInstance();
+    instance = new MonoCloudInstance({
+      userAgent: 'monocloud/nextjs-auth',
+      debugger: 'monocloud:nextjs-auth',
+    });
   }
 
   return instance;
