@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { MonoCloudUser } from '@monocloud/node-auth-core-sdk';
+import type { NextApiRequestCookies } from 'next/dist/server/api-utils';
 import type { NextMiddlewareResult } from 'next/dist/server/web/types';
 import type {
   NextFetchEvent,
@@ -16,14 +17,24 @@ import type {
   NextApiRequest,
   NextApiResponse,
 } from 'next/types';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ParsedUrlQuery } from 'node:querystring';
 
 export interface AppRouterContext {
   params: Record<string, string | string[]>;
 }
 
-export type NextAnyRequest = NextRequest | NextApiRequest;
-export type NextAnyResponse = NextApiResponse | AppRouterContext | NextResponse;
+export type NextAnyRequest =
+  | NextRequest
+  | NextApiRequest
+  | (IncomingMessage & {
+      cookies: NextApiRequestCookies;
+    });
+export type NextAnyResponse =
+  | NextApiResponse
+  | AppRouterContext
+  | NextResponse
+  | ServerResponse;
 export type NextAnyReturn = NextApiResponse | void;
 
 /**
