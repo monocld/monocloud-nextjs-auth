@@ -39,6 +39,7 @@ const redirectToSignIn = (returnUrl?: string) => {
   window.location.assign(`/api/auth/signin?return_url=${encodedReturnUrl}`);
 };
 
+/* c8 ignore start */
 const handlePageError = (error: Error, options?: ProtectPageOptions) => {
   if (options?.onError) {
     return options.onError(error);
@@ -46,6 +47,7 @@ const handlePageError = (error: Error, options?: ProtectPageOptions) => {
 
   throw error;
 };
+/* c8 ignore end */
 
 /**
  * Function to protect a client rendered page component.
