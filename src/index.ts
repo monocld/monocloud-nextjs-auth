@@ -1,4 +1,7 @@
-export type { MonoCloudUser } from '@monocloud/node-auth-core-sdk';
+export type {
+  MonoCloudUser,
+  MonoCloudSession,
+} from '@monocloud/node-auth-core-sdk';
 
 export {
   monoCloudAuth,
