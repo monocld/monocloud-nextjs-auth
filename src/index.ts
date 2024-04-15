@@ -3,7 +3,7 @@ export type {
   MonoCloudSession,
 } from '@monocloud/node-auth-core-sdk';
 
-export type { AppRouterApiHandlerFn, ProtectApi, ProtectPage } from './types';
+export type { AppRouterApiHandlerFn, ProtectPagePageReturnType } from './types';
 
 export {
   monoCloudAuth,
