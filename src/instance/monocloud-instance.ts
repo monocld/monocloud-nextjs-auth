@@ -53,6 +53,7 @@ export default class MonoCloudInstance {
   private readonly baseInstance: MonoCloudBaseInstance;
 
   constructor(options?: MonoCloudOptions) {
+    this.registerPublicEnvVariables();
     this.baseInstance = new MonoCloudBaseInstance(options);
   }
 
@@ -473,5 +474,14 @@ export default class MonoCloudInstance {
 
   private getOptions() {
     return this.baseInstance.getOptions();
+  }
+
+  private registerPublicEnvVariables() {
+    Object.keys(process.env)
+      .filter(key => key.startsWith('NEXT_PUBLIC_MONOCLOUD_AUTH'))
+      .forEach(publicKey => {
+        const privateKey = publicKey.split('NEXT_PUBLIC_')[1];
+        process.env[privateKey] = process.env[publicKey];
+      });
   }
 }
