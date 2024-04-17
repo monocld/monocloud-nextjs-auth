@@ -1,6 +1,6 @@
 {
   "name": "@monocloud/nextjs-auth",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "MonoCloud Next.js Authentication SDK",
   "keywords": [
     "monocloud",
@@ -42,7 +42,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "@monocloud/node-auth-core-sdk": "0.1.4",
+    "@monocloud/node-auth-core-sdk": "0.1.5",
     "cookie": "^0.6.0",
     "next": "^14.1.4",
     "react": "^18.2.0",
