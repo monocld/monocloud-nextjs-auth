@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { MonoCloudUser } from '@monocloud/node-auth-core-sdk';
+import type { MonoCloudUser } from '@monocloud/node-auth-core';
 import type { NextApiRequestCookies } from 'next/dist/server/api-utils';
 import type { NextMiddlewareResult } from 'next/dist/server/web/types';
 import type {

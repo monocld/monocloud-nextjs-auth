@@ -2,7 +2,7 @@
 import type {
   CookieOptions,
   MonoCloudResponse,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import { NextResponse } from 'next/server';
 
 export default class MonoCloudAppRouterResponse implements MonoCloudResponse {

@@ -1,6 +1,6 @@
 {
   "name": "@monocloud/nextjs-auth",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "MonoCloud Next.js Authentication SDK",
   "keywords": [
     "monocloud",
@@ -42,7 +42,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "@monocloud/node-auth-core-sdk": "0.1.4",
+    "@monocloud/node-auth-core": "0.1.0",
     "cookie": "^0.6.0",
     "next": "^14.1.4",
     "react": "^18.2.0",
@@ -50,16 +50,16 @@
   },
   "devDependencies": {
     "@edge-runtime/jest-environment": "^2.3.10",
-    "@testing-library/react": "^14.3.0",
+    "@testing-library/react": "^14.3.1",
     "@types/body-parser": "^1.19.5",
     "@types/cookie": "^0.6.0",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.12.6",
-    "@types/react": "^18.2.75",
-    "@types/react-dom": "^18.2.24",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
     "@types/tough-cookie": "^4.0.5",
-    "@typescript-eslint/eslint-plugin": "^7.6.0",
-    "@typescript-eslint/parser": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
     "body-parser": "^1.20.2",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "19.0.4",
@@ -81,7 +81,7 @@
     "rimraf": "^5.0.5",
     "tough-cookie": "^4.1.3",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.4.4",
+    "typescript": "^5.4.5",
     "url-search-params-polyfill": "^8.2.5"
   },
   "peerDependencies": {

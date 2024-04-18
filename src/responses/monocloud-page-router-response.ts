@@ -2,7 +2,7 @@
 import type {
   CookieOptions,
   MonoCloudResponse,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import type { NextApiResponse } from 'next';
 import { serialize } from 'cookie';
 

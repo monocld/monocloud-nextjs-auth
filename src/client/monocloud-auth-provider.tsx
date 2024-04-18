@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import type { MonoCloudUser } from '@monocloud/node-auth-core-sdk';
+import type { MonoCloudUser } from '@monocloud/node-auth-core';
 
 interface AuthState {
   isLoading: boolean;

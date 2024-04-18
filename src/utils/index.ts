@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next/types';
 import type {
   MonoCloudRequest,
   MonoCloudResponse,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import { AppRouterContext, NextAnyRequest, NextAnyResponse } from '../types';
 import MonoCloudAppRouterRequest from '../requests/monocloud-app-router-request';
 import MonoCloudPageRouterRequest from '../requests/monocloud-page-router-request';

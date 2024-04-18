@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { MonoCloudRequest } from '@monocloud/node-auth-core-sdk';
+import type { MonoCloudRequest } from '@monocloud/node-auth-core';
 import type { NextApiRequest } from 'next';
 
 export default class MonoCloudPageRouterRequest implements MonoCloudRequest {

@@ -4,7 +4,7 @@
 'use client';
 
 import React, { ComponentType, useEffect } from 'react';
-import type { MonoCloudUser } from '@monocloud/node-auth-core-sdk';
+import type { MonoCloudUser } from '@monocloud/node-auth-core';
 import { useUser } from './monocloud-auth-provider';
 
 /**

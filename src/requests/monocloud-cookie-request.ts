@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import type { IMonoCloudCookieRequest } from '@monocloud/node-auth-core-sdk';
+import type { IMonoCloudCookieRequest } from '@monocloud/node-auth-core';
 
 export default class MonoCloudCookieRequest implements IMonoCloudCookieRequest {
   /* c8 ignore start */

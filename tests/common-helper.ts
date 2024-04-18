@@ -5,7 +5,7 @@
 import { CookieJar } from 'tough-cookie';
 import { UrlWithParsedQuery, parse } from 'url';
 import { NextRequest, NextResponse } from 'next/server';
-import { MonoCloudSession } from '@monocloud/node-auth-core-sdk';
+import { MonoCloudSession } from '@monocloud/node-auth-core';
 
 export const now = () => Math.floor(Date.now() / 1000);
 

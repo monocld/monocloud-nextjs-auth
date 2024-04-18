@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Authenticators } from '@monocloud/node-auth-core-sdk';
+import { Authenticators } from '@monocloud/node-auth-core';
 import React from 'react';
 
 interface SignInProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {

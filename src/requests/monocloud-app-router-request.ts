@@ -1,4 +1,4 @@
-import type { MonoCloudRequest } from '@monocloud/node-auth-core-sdk';
+import type { MonoCloudRequest } from '@monocloud/node-auth-core';
 import type { NextRequest } from 'next/server';
 import { AppRouterContext } from '../types';
 

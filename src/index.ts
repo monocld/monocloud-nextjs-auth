@@ -1,7 +1,7 @@
 export type {
   MonoCloudUser,
   MonoCloudSession,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 
 export type { AppRouterApiHandlerFn, ProtectPagePageReturnType } from './types';
 

@@ -6,7 +6,7 @@
 import type {
   CookieOptions,
   IMonoCloudCookieResponse,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 
 let isWarned = false;
 

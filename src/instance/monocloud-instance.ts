@@ -20,11 +20,11 @@ import type {
   SignOutOptions,
   MonoCloudTokens,
   GetTokensOptions,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import {
   MonoCloudBaseInstance,
   isAbsoluteUrl,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import type { NextMiddlewareResult } from 'next/dist/server/web/types';
 import {
   AppRouterContext,

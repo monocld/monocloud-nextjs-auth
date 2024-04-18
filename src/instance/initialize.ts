@@ -2,7 +2,7 @@
 import type {
   MonoCloudSession,
   MonoCloudTokens,
-} from '@monocloud/node-auth-core-sdk';
+} from '@monocloud/node-auth-core';
 import MonoCloudInstance from './monocloud-instance';
 import {
   BaseFuncHandler,
