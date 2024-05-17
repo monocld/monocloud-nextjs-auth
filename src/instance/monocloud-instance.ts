@@ -24,6 +24,7 @@ import type {
 import {
   MonoCloudBaseInstance,
   isAbsoluteUrl,
+  ensureLeadingSlash,
 } from '@monocloud/node-auth-core';
 import type { NextMiddlewareResult } from 'next/dist/server/web/types';
 import {
@@ -77,16 +78,16 @@ export default class MonoCloudInstance {
       const route = new URL(url);
 
       switch (route.pathname) {
-        case routes.signIn:
+        case ensureLeadingSlash(routes.signIn):
           return this.resolvedSignInHandler(req, resOrCtx);
 
-        case routes.callback:
+        case ensureLeadingSlash(routes.callback):
           return this.resolvedCallbackHandler(req, resOrCtx);
 
-        case routes.userInfo:
+        case ensureLeadingSlash(routes.userInfo):
           return this.resolvedUserInfoHandler(req, resOrCtx);
 
-        case routes.signOut:
+        case ensureLeadingSlash(routes.signOut):
           return this.resolvedSignOutHandler(req, resOrCtx);
 
         default:
@@ -270,7 +271,11 @@ export default class MonoCloudInstance {
   ): Promise<NextMiddlewareResult> {
     const { routes, appUrl } = this.getOptions();
 
-    if (Object.values(routes).includes(req.nextUrl.pathname)) {
+    if (
+      Object.values(routes)
+        .map(x => ensureLeadingSlash(x))
+        .includes(req.nextUrl.pathname)
+    ) {
       return NextResponse.next();
     }
 
