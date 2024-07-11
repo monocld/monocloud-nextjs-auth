@@ -15,14 +15,14 @@ describe('useUser()', () => {
   });
 
   it('should return the default value if MonoCloudAuthProvider is not setup', () => {
-    const { result } = renderHook(() => useUser());
-
-    expect(result.current).toEqual({
-      isAuthenticated: false,
-      isLoading: true,
-      user: undefined,
-      error: undefined,
-    });
+    try {
+      renderHook(() => useUser());
+      throw new Error();
+    } catch (error) {
+      expect(error.message).toContain(
+        'useUser() can only be used inside <MonoCloudAuthProvider>...</MonoCloudAuthProvider>.'
+      );
+    }
   });
 
   it('should return error if the server responded with an error', async () => {

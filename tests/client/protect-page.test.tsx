@@ -40,7 +40,7 @@ describe('protectPage() - CSR', () => {
 
     await waitFor(() => {
       expect(window.location.assign).toHaveBeenCalledWith(
-        '/api/auth/signin?return_url=%2F'
+        '/api/auth/signin?return_url=https%3A%2F%2Fexample.org'
       );
       expect(container.textContent).not.toContain('Great Success!!!');
     });

@@ -346,3 +346,20 @@ type ProtectApiApp = (
  * Protects an api route handler.
  */
 export type ProtectApi = ProtectApiApp & ProtectApiPage;
+
+/**
+ * Redirects user to sign in page.
+ *
+ * @param returnUrl - The url user will be redirected to after the sign in.
+ */
+export type RedirectToSignIn = (returnUrl?: string) => Promise<void>;
+
+/**
+ * Props for the `<RedirectToSignIn />` Component
+ */
+export interface RedirectToSignInProps {
+  /**
+   * The url user will be redirected to after the sign in.
+   */
+  returnUrl?: string;
+}
