@@ -25,12 +25,31 @@ const initialState: AuthState = {
   error: undefined,
 };
 
-const MonoCloudAuthContext = createContext<AuthState>({ ...initialState });
+const MonoCloudAuthContext = createContext<AuthState>(
+  undefined as unknown as AuthState
+);
 
-export const useUser = () => useContext(MonoCloudAuthContext);
+export const useUser = () => {
+  const ctx = useContext(MonoCloudAuthContext);
+
+  if (!ctx) {
+    throw new Error(
+      `useUser() can only be used inside <MonoCloudAuthProvider>...</MonoCloudAuthProvider>. To setup MonoCloud Auth Provider visit any of the following links.
+        App Router - https://www.monocloud.com/docs/sdk-reference/nextjs/app-router/getting-started
+        Page Router - https://www.monocloud.com/docs/sdk-reference/nextjs/page-router/getting-started
+      `
+    );
+  }
+
+  return ctx;
+};
 
 const fetchUser = async (): Promise<MonoCloudUser | undefined> => {
-  const response = await fetch('/api/auth/userinfo');
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_USER_INFO_URL ??
+      // eslint-disable-next-line no-underscore-dangle
+      `${process.env.__NEXT_ROUTER_BASEPATH ?? ''}/api/auth/userinfo`
+  );
 
   if (response.status === 204) {
     return undefined;

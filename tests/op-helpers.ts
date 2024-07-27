@@ -33,7 +33,8 @@ export const setupOp = async (
     token: boolean;
     userinfo: boolean;
   } = { token: true, userinfo: true },
-  customRefreshBodyMatcher = {}
+  customRefreshBodyMatcher = {},
+  redirectUri = 'https://example.org/api/auth/callback'
 ) => {
   nock('https://op.example.com')
     .get('/.well-known/openid-configuration')
@@ -87,7 +88,7 @@ export const setupOp = async (
       .post('/token', body => {
         return (
           body.code === 'code' &&
-          body.redirect_uri === 'https://example.org/api/auth/callback' &&
+          body.redirect_uri === redirectUri &&
           body.code_verifier?.trim().length > 0 &&
           body.grant_type === 'authorization_code'
         );

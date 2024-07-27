@@ -9,6 +9,7 @@ import {
 } from '../../op-helpers';
 
 describe('SignIn Handler - App Router', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let authHandler: any;
 
   beforeEach(() => {

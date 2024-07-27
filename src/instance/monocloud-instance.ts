@@ -123,11 +123,13 @@ export default class MonoCloudInstance {
         const { headers } = require('next/headers');
         const path = headers().get('x-monocloud-path');
 
-        const signInRoute = new URL(routes.signIn, appUrl);
+        const signInRoute = new URL(
+          `${appUrl}${ensureLeadingSlash(routes.signIn)}`
+        );
 
         signInRoute.searchParams.set(
           'return_url',
-          options?.returnUrl ?? path ?? new URL(appUrl).pathname
+          options?.returnUrl ?? path ?? '/'
         );
 
         const { redirect } = require('next/navigation');
@@ -148,7 +150,9 @@ export default class MonoCloudInstance {
       if (!session) {
         const { routes, appUrl } = this.getOptions();
 
-        const signInRoute = new URL(routes.signIn, appUrl);
+        const signInRoute = new URL(
+          `${appUrl}${ensureLeadingSlash(routes.signIn)}`
+        );
 
         signInRoute.searchParams.set(
           'return_url',
@@ -317,7 +321,9 @@ export default class MonoCloudInstance {
         ]);
       }
 
-      const signInRoute = new URL(routes.signIn, appUrl);
+      const signInRoute = new URL(
+        `${appUrl}${ensureLeadingSlash(routes.signIn)}`
+      );
       signInRoute.searchParams.set(
         'return_url',
         req.nextUrl.pathname + req.nextUrl.search
@@ -352,6 +358,35 @@ export default class MonoCloudInstance {
    */
   public isAuthenticated: BaseFuncHandler<boolean> =
     this.resolveFunction<boolean>(this.resolvedIsAuthenticated.bind(this));
+
+  /**
+   * Redirects the user to sign-in if not authenticated.
+   * **Note: This function only works on App Router.**
+   */
+  public async redirectToSignIn(returnUrl?: string): Promise<void> {
+    const { routes, appUrl } = this.baseInstance.getOptions();
+    let path;
+    try {
+      const session = await this.getSession();
+
+      if (session) {
+        return;
+      }
+
+      const { headers } = require('next/headers');
+      path = headers().get('x-monocloud-path') ?? '/';
+    } catch (error) {
+      throw new Error(
+        'redirectToSignIn() can only be used in App Router project'
+      );
+    }
+
+    const { redirect } = require('next/navigation');
+
+    redirect(
+      `${appUrl}${routes.signIn}?return_url=${encodeURIComponent(returnUrl?.trim().length ? returnUrl : path)}`
+    );
+  }
 
   private resolveFunction<TResult, TOptions = any>(
     baseHandler: (

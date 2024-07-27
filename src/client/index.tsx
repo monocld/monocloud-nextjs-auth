@@ -3,3 +3,4 @@ export { SignIn } from './signin';
 export { SignUp } from './signup';
 export { SignOut } from './signout';
 export { protectPage } from './protect';
+export { RedirectToSignIn } from './redirect-to-signin';

@@ -17,7 +17,9 @@ export const SignIn: React.FC<SignInProps> = ({
   ...props
 }) => {
   const signInUrl =
-    process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL ?? '/api/auth/signin';
+    process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL ??
+    // eslint-disable-next-line no-underscore-dangle
+    `${process.env.__NEXT_ROUTER_BASEPATH ?? ''}/api/auth/signin`;
 
   const query = new URLSearchParams();
 

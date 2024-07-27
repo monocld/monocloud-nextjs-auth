@@ -31,12 +31,14 @@ type ProtectPage = <P extends {}>(
   options?: ProtectPageOptions
 ) => React.FC<P>;
 
-const redirectToSignIn = (returnUrl?: string) => {
-  const location = window.location.toString();
+export const redirectToSignIn = (returnUrl?: string) => {
   const encodedReturnUrl = encodeURIComponent(
-    returnUrl ?? (location.replace(new URL(location).origin, '') || '/')
+    returnUrl ?? window.location.toString()
   );
-  window.location.assign(`/api/auth/signin?return_url=${encodedReturnUrl}`);
+  window.location.assign(
+    // eslint-disable-next-line no-underscore-dangle
+    `${process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL ?? `${process.env.__NEXT_ROUTER_BASEPATH ?? ''}/api/auth/signin`}?return_url=${encodedReturnUrl}`
+  );
 };
 
 /* c8 ignore start */
