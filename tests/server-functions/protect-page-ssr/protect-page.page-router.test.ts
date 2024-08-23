@@ -5,6 +5,7 @@ import { monoCloudAuth, protectPage } from '../../../src';
 import {
   defaultSessionCookieValue,
   setSessionCookie,
+  userWithGroupsSessionCookieValue,
 } from '../../common-helper';
 import {
   get,
@@ -212,5 +213,136 @@ describe('protectPage() - Page Router', () => {
     const baseUrl = await startNodeServer(handler);
 
     await get(baseUrl, '/test');
+  });
+
+  describe('groups', () => {
+    it('should return props with user if the user belongs to any of the listed groups', async () => {
+      const serverSideProps = protectPage({ groups: ['test'] });
+
+      const user = { ...defaultSessionCookieValue.user, groups: ['test'] };
+
+      const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+        const result: any = await serverSideProps({
+          req,
+          res,
+          query: req.query,
+          resolvedUrl: req.url ?? '/',
+        });
+
+        res.end();
+
+        expect(result.props.user).toEqual(user);
+      };
+
+      const baseUrl = await startNodeServer(handler);
+
+      const cookieJar = new CookieJar();
+
+      await setSessionCookie(cookieJar, `${baseUrl}/`, {
+        ...defaultSessionCookieValue,
+        user,
+      });
+
+      await get(baseUrl, '/', cookieJar);
+    });
+
+    it('can customize the groups claim', async () => {
+      const serverSideProps = protectPage({
+        groups: ['test'],
+        groupsClaim: 'CUSTOM_GROUPS',
+      });
+
+      const user = {
+        ...defaultSessionCookieValue.user,
+        CUSTOM_GROUPS: ['test'],
+      };
+
+      const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+        const result: any = await serverSideProps({
+          req,
+          res,
+          query: req.query,
+          resolvedUrl: req.url ?? '/',
+        });
+
+        res.end();
+
+        expect(result.props.user).toEqual(user);
+      };
+
+      const baseUrl = await startNodeServer(handler);
+
+      const cookieJar = new CookieJar();
+
+      await setSessionCookie(cookieJar, `${baseUrl}/`, {
+        ...defaultSessionCookieValue,
+        user,
+      });
+
+      await get(baseUrl, '/', cookieJar);
+    });
+
+    it('should return props with accessDenied - true if the user does not belongs to any of the listed groups', async () => {
+      const serverSideProps = protectPage({
+        groups: ['NOPE'],
+      });
+
+      const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+        const result: any = await serverSideProps({
+          req,
+          res,
+          query: req.query,
+          resolvedUrl: req.url ?? '/',
+        });
+
+        res.end();
+
+        expect(result.props).toEqual({ accessDenied: true });
+      };
+
+      const baseUrl = await startNodeServer(handler);
+
+      const cookieJar = new CookieJar();
+
+      await setSessionCookie(
+        cookieJar,
+        `${baseUrl}/`,
+        userWithGroupsSessionCookieValue
+      );
+
+      await get(baseUrl, '/', cookieJar);
+    });
+
+    it('can set custom onAccessDenied getServerSideProps', async () => {
+      const serverSideProps = protectPage({
+        groups: ['NOPE'],
+        onAccessDenied: () => ({ props: { custom: true } }),
+      });
+
+      const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+        const result: any = await serverSideProps({
+          req,
+          res,
+          query: req.query,
+          resolvedUrl: req.url ?? '/',
+        });
+
+        res.end();
+
+        expect(result.props).toEqual({ custom: true });
+      };
+
+      const baseUrl = await startNodeServer(handler);
+
+      const cookieJar = new CookieJar();
+
+      await setSessionCookie(
+        cookieJar,
+        `${baseUrl}/`,
+        userWithGroupsSessionCookieValue
+      );
+
+      await get(baseUrl, '/', cookieJar);
+    });
   });
 });

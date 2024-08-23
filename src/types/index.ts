@@ -38,6 +38,45 @@ export type NextAnyResponse =
 export type NextAnyReturn = NextApiResponse | void;
 
 /**
+ * @param req - The Next.js request object.
+ * @param error - Error occured during execution of the endpoint.
+ * @returns A promise of the response or void
+ */
+type AppOnError = (
+  req: NextRequest,
+  error: Error
+) => Promise<NextResponse | void> | NextResponse | void;
+
+/**
+ * @param req - The Next.js API request object.
+ * @param res - The Next.js API response object.
+ * @param error - Error occured during execution of the endpoint.
+ * @returns A promise of void
+ */
+type PageOnError = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  error: Error
+) => Promise<void> | void;
+
+/**
+ * A function used to handle errors that occur during the signin, callback, signout and userinfo endpoint execution.
+ *
+ * `Note` - In the app router error handler, failing to return a `NextResponse` or throw an error will cause the request to hang. Same happens in the page router if you don't call `res.send()` or `res.json()` after you handle the error.
+ */
+type OnError = AppOnError | PageOnError;
+
+/**
+ * Options to configure `monoCloudAuth()`.
+ */
+export interface MonoCloudAuthOptions {
+  /**
+   * Error handler for signin, callback, signout and userinfo endpoints.
+   */
+  onError?: OnError;
+}
+
+/**
  * @typeparam Opts - The type of the additional options parameter (default: `any`).
  */
 export type Handler<Opts = any> = {
@@ -188,6 +227,60 @@ export type FuncHandler<TResult, TOptions = any> = BaseFuncHandler<TResult> & {
 };
 
 /**
+ * @typeparam TResult - The type of the result returned by the function.
+ * @typeparam TOptions - The type of the additional options parameter (default: `any`).
+ */
+export interface RequiredFuncHandler<TResult, TOptions = any> {
+  /**
+   * @param req - The Next.js request object.
+   * @param ctx - The context object, which can be either an AppRouterContext or a NextResponse.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextRequest,
+    ctx: AppRouterContext | NextResponse,
+    options: TOptions
+  ): Promise<TResult>;
+
+  /**
+   * @param req - The Next.js API request object.
+   * @param res - The Next.js API response object.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    options: TOptions
+  ): Promise<TResult>;
+
+  /**
+   * @param req - The generic Next.js request object.
+   * @param res - The generic Next.js response object.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextAnyRequest,
+    res: NextAnyResponse,
+    options: TOptions
+  ): Promise<TResult>;
+
+  /**
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (options: TOptions): Promise<TResult>;
+}
+
+type NextMiddlewareOnAccessDenied = (
+  request: NextRequest,
+  event: NextFetchEvent,
+  user: MonoCloudUser
+) => NextMiddlewareResult | Promise<NextMiddlewareResult>;
+
+/**
  * Options for configuring MonoCloud authentication middleware.
  */
 export interface MonoCloudMiddlewareOptions {
@@ -197,8 +290,31 @@ export interface MonoCloudMiddlewareOptions {
    * or a function that returns a boolean indicating whether a request should be protected.
    */
   protectedRoutes?:
-    | (string | RegExp)[]
+    | (
+        | string
+        | RegExp
+        | {
+            /**
+             * Routes accessible by the users of specified groups
+             */
+            routes: (string | RegExp)[];
+            /**
+             * A list of group names or IDs to which the user must belong to for accessing the routes. Access if granted if the user belongs to any one of the groups.
+             */
+            groups: string[];
+          }
+      )[]
     | ((req: NextRequest) => Promise<boolean> | boolean);
+
+  /**
+   * Name of the claim of user's groups. default: `groups`.
+   */
+  groupsClaim?: string;
+
+  /**
+   * A middleware function to be used if the user does not belong to atleast one group. By default, a `403 Forbidden` response is sent.
+   */
+  onAccessDenied?: NextMiddlewareOnAccessDenied;
 }
 
 /**
@@ -242,14 +358,40 @@ export type AppRouterApiHandlerFn = (
   res: AppRouterContext
 ) => Promise<Response> | Response;
 
-export interface ProtectAppPageOptions {
-  returnUrl?: string;
+type AppPageHandler = (props: {
+  user: MonoCloudUser;
+  params?: Record<string, string | string[]>;
+  searchParams?: Record<string, string | string[] | undefined>;
+}) => Promise<JSX.Element> | JSX.Element;
+
+export interface GroupOptions {
+  /**
+   * A list of group names or IDs to which the user must belong to. The user should belong to atleast one of the specified groups.
+   */
+  groups?: string[];
+
+  /**
+   * Name of the claim of user's groups. default: `groups`.
+   */
+  groupsClaim?: string;
 }
 
-export interface ProtectPagePageOptions<
+export type ProtectAppPageOptions = {
+  /**
+   * The URL to return to after authentication.
+   */
+  returnUrl?: string;
+
+  /**
+   * Alternate page handler used when the user is denied access to view the page. By default a message `You are not allowed to visit this page` is displayed.
+   */
+  onAccessDenied?: AppPageHandler;
+} & GroupOptions;
+
+export type ProtectPagePageOptions<
   P extends Record<string, any> = Record<string, any>,
   Q extends ParsedUrlQuery = ParsedUrlQuery,
-> {
+> = {
   /**
    * Function to fetch server-side props for the protected page handler.
    * If provided, this function will be called before rendering the protected page.
@@ -263,7 +405,19 @@ export interface ProtectPagePageOptions<
    * Specifies the URL to redirect to after authentication.
    */
   returnUrl?: string;
-}
+
+  /**
+   * Alternate `getServerSideProps` function used when the user is denied access to view the page. By default `{ accessDenied: true }` is returned as props.
+   */
+  onAccessDenied?: ProtectPagePageOnAccessDeniedType<P, Q>;
+} & GroupOptions;
+
+export type ProtectPagePageOnAccessDeniedType<
+  P,
+  Q extends ParsedUrlQuery = ParsedUrlQuery,
+> = (
+  context: GetServerSidePropsContext<Q> & { user: MonoCloudUser }
+) => Promise<GetServerSidePropsResult<P>> | GetServerSidePropsResult<P>;
 
 export type ProtectPagePageReturnType<
   P,
@@ -299,11 +453,7 @@ export type ProtectAppPage = (
   /**
    * The page handler function to protect
    */
-  handler: (props: {
-    user: MonoCloudUser;
-    params?: Record<string, string | string[]>;
-    searchParams?: Record<string, string | string[] | undefined>;
-  }) => Promise<JSX.Element> | JSX.Element,
+  handler: AppPageHandler,
 
   /**
    * Protection options
@@ -316,30 +466,68 @@ export type ProtectAppPage = (
  */
 export type ProtectPage = ProtectAppPage & ProtectPagePage;
 
+export type AppRouterApiOnAccessDeniedHandlerFn = (
+  req: NextRequest,
+  res: AppRouterContext,
+  user: MonoCloudUser
+) => Promise<Response> | Response;
+
 export type ProtectAppApi = (
   req: NextRequest,
   ctx: AppRouterContext,
-  handler: AppRouterApiHandlerFn
+  handler: AppRouterApiHandlerFn,
+  options?: {
+    /**
+     * Alternate app router api handler used when the user is denied access to the API. By default `{ message: 'forbidden' }` with  `403 Forbidden` is returned as a response.
+     */
+    onAccessDenied?: AppRouterApiOnAccessDeniedHandlerFn;
+  } & GroupOptions
 ) => Promise<Response> | Response;
+
+export type NextPageRouterApiOnAccessDeniedHandler = (
+  req: NextApiRequest,
+  res: NextApiResponse<any>,
+  user: MonoCloudUser
+) => unknown | Promise<unknown>;
 
 export type ProtectPageApi = (
   req: NextApiRequest,
   res: NextApiResponse,
-  handler: NextApiHandler
+  handler: NextApiHandler,
+  options?: {
+    /**
+     * Alternate page router api handler used when the user is denied access to the API. By default `{ message: 'forbidden' }` with  `403 Forbidden` is returned as a response.
+     */
+    onAccessDenied?: NextPageRouterApiOnAccessDeniedHandler;
+  } & GroupOptions
 ) => Promise<unknown>;
 
 type ProtectApiPage = (
   /**
    * The api route handler function to protect
    */
-  handler: NextApiHandler
+  handler: NextApiHandler,
+
+  options?: {
+    /**
+     * Alternate page router api handler used when the user is denied access to the API. By default `{ message: 'forbidden' }` with  `403 Forbidden` is returned as a response.
+     */
+    onAccessDenied?: NextPageRouterApiOnAccessDeniedHandler;
+  } & GroupOptions
 ) => NextApiHandler;
 
 type ProtectApiApp = (
   /**
    * The api route handler function to protect
    */
-  handler: AppRouterApiHandlerFn
+  handler: AppRouterApiHandlerFn,
+
+  options?: {
+    /**
+     * Alternate app router api handler used when the user is denied access to the API. By default `{ message: 'forbidden' }` with  `403 Forbidden` is returned as a response.
+     */
+    onAccessDenied?: AppRouterApiOnAccessDeniedHandlerFn;
+  } & GroupOptions
 ) => AppRouterApiHandlerFn;
 
 /**
@@ -363,3 +551,25 @@ export interface RedirectToSignInProps {
    */
   returnUrl?: string;
 }
+
+export type ProtectedComponent = React.FunctionComponent<{
+  /**
+   * Components that should be rendered if the user belong to atleast one of the specified groups.
+   */
+  children: React.ReactNode;
+
+  /**
+   * A list of group names or IDs to which the user must belong to. The user should belong to atleast one of the specified groups.
+   */
+  groups: string[];
+
+  /**
+   * Name of the claim of user's groups. default: `groups`.
+   */
+  groupsClaim?: string;
+
+  /**
+   * A fallback component that should render if the user does not belong to any of the groups specified.
+   */
+  onAccessDenied?: React.ReactNode;
+}>;

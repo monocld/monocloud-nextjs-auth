@@ -4,8 +4,8 @@
 /* eslint-disable react/jsx-no-useless-fragment */
 
 import { type FunctionComponent, useEffect } from 'react';
-import { redirectToSignIn } from './protect';
-import type { RedirectToSignInProps } from '../types';
+import { redirectToSignIn } from '../../client/protect';
+import type { RedirectToSignInProps } from '../../types';
 
 /**
  * A client side component that will redirect users to the sign in page.

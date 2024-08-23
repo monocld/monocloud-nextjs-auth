@@ -1,9 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { NextFetchEvent } from 'next/dist/server/web/spec-extension/fetch-event';
 import { monoCloudAuth, monoCloudMiddleware } from '../../../src';
-import { TestAppRes, setSessionCookie } from '../../common-helper';
+import {
+  TestAppRes,
+  defaultSessionCookieValue,
+  setSessionCookie,
+  userWithGroupsSessionCookieValue,
+} from '../../common-helper';
 
-describe('MonoCloud Middleware - App Router Tests', () => {
+describe('MonoCloud Middleware', () => {
   beforeEach(() => {
     monoCloudAuth();
   });
@@ -205,5 +210,107 @@ describe('MonoCloud Middleware - App Router Tests', () => {
     expect(res.locationHeaderPathOnly).toBe(
       'https://example.org/api/auth/signin'
     );
+  });
+
+  it('returns forbidden if the user does not belong to a group', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [{ routes: ['/protected'], groups: ['NOPE'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(403);
+    expect(await res.getBody()).toBe(
+      'You are not allowed to access: /protected'
+    );
+  });
+
+  it('allows the user if the user belongs to the group', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [{ routes: ['/protected'], groups: ['test'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(200);
+  });
+
+  it('can set custom groups claim', async () => {
+    const middleware = monoCloudMiddleware({
+      groupsClaim: 'CUSTOM_GROUPS',
+      protectedRoutes: [{ routes: ['/protected'], groups: ['test'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(request, undefined, {
+      ...defaultSessionCookieValue,
+      user: { ...defaultSessionCookieValue.user, CUSTOM_GROUPS: ['test'] },
+    });
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(200);
+  });
+
+  it('can set custom onAccessDenied middleware function', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [
+        {
+          routes: ['/protected'],
+          groups: ['NOPE'],
+        },
+      ],
+      onAccessDenied: () => NextResponse.json({ custom: true }),
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(200);
+    expect(await res.getBody()).toStrictEqual({ custom: true });
   });
 });

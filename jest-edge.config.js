@@ -9,6 +9,7 @@ module.exports = {
     '**/tests/server-functions/**/*.app-router.test.ts',
     '**/tests/config/**/*.app-router.test.ts',
     '**/tests/utils.test.ts',
+    '**/tests/server-components/protected.test.ts',
   ],
   moduleNameMapper: { '^uuid$': 'uuid' },
 };

@@ -4,17 +4,23 @@
 'use client';
 
 import React, { ComponentType, useEffect } from 'react';
-import type { MonoCloudUser } from '@monocloud/node-auth-core';
+import { isUserInGroup, type MonoCloudUser } from '@monocloud/node-auth-core';
 import { useUser } from './monocloud-auth-provider';
+import { GroupOptions } from '../types';
 
 /**
  * Options for configuring page protection.
  */
-export interface ProtectPageOptions {
+export type ProtectPageOptions = {
   /**
    * Specifies the URL to redirect to after authentication.
    */
   returnUrl?: string;
+
+  /**
+   * A custom react element to render when the user is denied access to the page. By default a message `You are not allowed to visit this page` is displayed.
+   */
+  onAccessDenied?: (user: MonoCloudUser) => JSX.Element;
 
   /**
    * Callback function to handle errors.
@@ -24,7 +30,7 @@ export interface ProtectPageOptions {
    * @returns JSX element to handle the error.
    */
   onError?: (error: Error) => JSX.Element;
-}
+} & GroupOptions;
 
 type ProtectPage = <P extends {}>(
   Component: ComponentType<P & { user: MonoCloudUser }>,
@@ -75,6 +81,21 @@ export const protectPage: ProtectPage = (Component, options) => {
     }
 
     if (user) {
+      if (
+        options?.groups &&
+        !isUserInGroup(
+          user,
+          options.groups,
+          options.groupsClaim?.trim() ||
+            process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_GROUPS_CLAIM
+        )
+      ) {
+        const {
+          onAccessDenied = () => <>You are not allowed to visit this page</>,
+        } = options;
+        return onAccessDenied(user);
+      }
+
       return <Component user={user} {...props} />;
     }
 

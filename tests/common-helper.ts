@@ -175,12 +175,14 @@ export class TestAppRes implements TestResponse {
   }
 
   async getBody(): Promise<any> {
+    let data;
     try {
-      const data = await this.res.json();
-      return data;
+      data = await this.res.text();
+      data = JSON.parse(data);
     } catch (error) {
-      return this.res.text();
+      // ignore
     }
+    return data;
   }
 }
 
@@ -327,6 +329,11 @@ export const defaultSessionCookieValue = {
   idToken: 'idtoken',
   refreshToken: 'rt',
   scopes: process.env.MONOCLOUD_AUTH_SCOPES,
+};
+
+export const userWithGroupsSessionCookieValue = {
+  ...defaultSessionCookieValue,
+  user: { ...defaultSessionCookieValue.user, groups: ['test'] },
 };
 
 export const setSessionCookie = async (

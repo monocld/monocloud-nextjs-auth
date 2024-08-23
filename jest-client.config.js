@@ -7,4 +7,5 @@ module.exports = {
     '**/tests/client/**.test.{ts,tsx}'
   ],
   testPathIgnorePatterns: [],
+  transformIgnorePatterns: ["node_modules/(?!jose)"]
 };

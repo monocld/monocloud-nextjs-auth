@@ -1,6 +1,6 @@
 {
   "name": "@monocloud/nextjs-auth",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MonoCloud Next.js Authentication SDK",
   "keywords": [
     "monocloud",
@@ -31,7 +31,14 @@
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./client": "./dist/client/index.js"
+    "./client": "./dist/client/index.js",
+    "./components": "./dist/components/index.js"
+  },
+  "imports": {
+    "#components": {
+      "react-server": "./dist/components/components.server.js",
+      "default": "./dist/components/components.client.js"
+    }
   },
   "scripts": {
     "prebuild": "rimraf dist",
@@ -42,7 +49,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "@monocloud/node-auth-core": "0.1.4",
+    "@monocloud/node-auth-core": "0.1.5",
     "cookie": "^0.6.0",
     "next": "^14.2.5",
     "react": "^18.3.1",

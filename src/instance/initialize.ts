@@ -11,6 +11,8 @@ import {
   ProtectApi,
   ProtectPage,
   RedirectToSignIn,
+  MonoCloudAuthOptions,
+  RequiredFuncHandler,
 } from '../types';
 
 let instance: MonoCloudInstance;
@@ -30,8 +32,12 @@ const getInstance = () => {
  * Api middleware function for handling authentication routes.
  * It checks incoming requests against predefined authentication routes
  * and calls corresponding handler functions.
+ *
+ * @param options - Options to customize authentication.
+ *
  */
-export const monoCloudAuth = () => getInstance().monoCloudAuth();
+export const monoCloudAuth = (options?: MonoCloudAuthOptions) =>
+  getInstance().monoCloudAuth(options);
 
 /**
  * A middleware that protects pages and apis and handles authentication.
@@ -68,6 +74,16 @@ export const isAuthenticated: BaseFuncHandler<boolean> = (...args: unknown[]) =>
   );
 
 /**
+ * Checks if the user belongs to any one of the groups/group ids specified
+ */
+export const isUserInGroup: RequiredFuncHandler<boolean, string[]> = (
+  ...args: unknown[]
+) =>
+  getInstance().isUserInGroup(
+    ...(args as Parameters<RequiredFuncHandler<boolean, string[]>>)
+  );
+
+/**
  * Redirects the user to sign-in if not authenticated.
  * **Note: This function only works on App Router.**
  */
@@ -80,8 +96,8 @@ export const redirectToSignIn: RedirectToSignIn = (returnUrl?: string) =>
  * @param handler - API handler function.
  * @returns Protected API handler function.
  */
-export const protectApi: ProtectApi = handler =>
-  getInstance().protectApi(handler as any) as any;
+export const protectApi: ProtectApi = (handler, options) =>
+  getInstance().protectApi(handler as any, options as any) as any;
 
 /**
  * Protects a server rendered page.

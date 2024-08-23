@@ -2,7 +2,9 @@
 import 'url-search-params-polyfill';
 import { render } from '@testing-library/react';
 import React from 'react';
-import { SignIn, SignOut, SignUp } from '../../src/client';
+import { SignIn } from '../../src/components/signin';
+import { SignUp } from '../../src/components/signup';
+import { SignOut } from '../../src/components/signout';
 
 describe('<SignIn/>', () => {
   it('should a link to signin endpoint', () => {
@@ -30,7 +32,7 @@ describe('<SignIn/>', () => {
     expect(anchorElements.length).toBe(1);
     expect(anchor.attributes.length).toBe(1);
     expect(href).toBe(
-      '/api/auth/signin?authenticator=google&login_hint=username&return_url=%2Ftest'
+      '/api/auth/signin?authenticator_hint=google&login_hint=username&return_url=%2Ftest'
     );
     expect(anchor.text).toBe('Sign In');
   });

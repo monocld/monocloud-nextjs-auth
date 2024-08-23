@@ -3,7 +3,18 @@ export type {
   MonoCloudSession,
 } from '@monocloud/node-auth-core';
 
-export type { AppRouterApiHandlerFn, ProtectPagePageReturnType } from './types';
+export {
+  MonoCloudAuthBaseError,
+  MonoCloudDiscoveryError,
+  MonoCloudError,
+  MonoCloudOPError,
+} from '@monocloud/node-auth-core';
+
+export type {
+  AppRouterApiHandlerFn,
+  ProtectPagePageReturnType,
+  AppRouterContext,
+} from './types';
 
 export {
   monoCloudAuth,
@@ -14,4 +25,5 @@ export {
   protectApi,
   protectPage,
   redirectToSignIn,
+  isUserInGroup,
 } from './instance/initialize';

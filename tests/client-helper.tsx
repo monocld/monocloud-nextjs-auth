@@ -21,20 +21,41 @@ export const fetch500 = () => {
   });
 };
 
-export const fetchOk = () => {
+export const fetchOk = (expectedUrl = '/api/auth/userinfo') => {
+  (global as any).fetch = jest.fn((url: string) => {
+    expect(url).toBe(expectedUrl);
+    return {
+      status: 200,
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          sub: 'sub',
+          email: 'a@b.com',
+        }),
+    };
+  });
+};
+
+export const fetchOkGroups = () => {
   (global as any).fetch = jest.fn((url: string) => {
     expect(url).toBe('/api/auth/userinfo');
     return {
       status: 200,
       ok: true,
-      json: () => Promise.resolve({ sub: 'sub', email: 'a@b.com' }),
+      json: () =>
+        Promise.resolve({
+          sub: 'sub',
+          email: 'a@b.com',
+          groups: [{ id: 'testId', name: 'testName' }],
+          CUSTOM_GROUPS: [{ id: 'testId', name: 'testName' }],
+        }),
     };
   });
 };
 
-export const fetchNoContent = () => {
+export const fetchNoContent = (expectedUrl = '/api/auth/userinfo') => {
   (global as any).fetch = jest.fn((url: string) => {
-    expect(url).toBe('/api/auth/userinfo');
+    expect(url).toBe(expectedUrl);
     return {
       status: 204,
       ok: true,

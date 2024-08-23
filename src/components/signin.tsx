@@ -24,7 +24,7 @@ export const SignIn: React.FC<SignInProps> = ({
   const query = new URLSearchParams();
 
   if (authenticator) {
-    query.set('authenticator', authenticator);
+    query.set('authenticator_hint', authenticator);
   }
 
   if (loginHint) {
