@@ -3,7 +3,12 @@ module.exports = {
   rootDir: '.',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
   preset: 'ts-jest/presets/js-with-ts',
-  coveragePathIgnorePatterns: ['node_modules', './src/types'],
+  coveragePathIgnorePatterns: [
+    'node_modules',
+    './src/index.ts',
+    './src/types',
+    './src/components/index.tsx',
+  ],
   setupFilesAfterEnv: ['./tests/setup.ts'],
   testPathIgnorePatterns: ['./tests/client'],
 };

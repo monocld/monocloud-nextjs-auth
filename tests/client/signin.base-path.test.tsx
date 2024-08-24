@@ -2,7 +2,7 @@
 import 'url-search-params-polyfill';
 import { render } from '@testing-library/react';
 import React from 'react';
-import { SignIn } from '../../src/client/signin';
+import { SignIn } from '../../src/components/signin';
 
 describe('<SignIn/> - Base Path', () => {
   it('should pickup base path from __NEXT_ROUTER_BASEPATH', () => {

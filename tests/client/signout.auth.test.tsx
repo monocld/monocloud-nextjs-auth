@@ -2,7 +2,7 @@
 import 'url-search-params-polyfill';
 import { render } from '@testing-library/react';
 import React from 'react';
-import { SignOut } from '../../src/client/signout';
+import { SignOut } from '../../src/components/signout';
 
 describe('<SignOut/> - NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_OUT_URL', () => {
   it('should pickup the custom sign out endpoint set through the env', () => {

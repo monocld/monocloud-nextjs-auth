@@ -2,7 +2,7 @@
 import 'url-search-params-polyfill';
 import { render } from '@testing-library/react';
 import React from 'react';
-import { SignUp } from '../../src/client/signup';
+import { SignUp } from '../../src/components/signup';
 
 describe('<SignUp/> - NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL', () => {
   it('should pickup the custom auth endpoint set through the env', () => {

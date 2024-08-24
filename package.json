@@ -31,7 +31,8 @@
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./client": "./dist/client/index.js"
+    "./client": "./dist/client/index.js",
+    "./components": "./dist/components/index.js"
   },
   "scripts": {
     "prebuild": "rimraf dist",

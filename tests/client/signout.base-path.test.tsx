@@ -2,7 +2,7 @@
 import 'url-search-params-polyfill';
 import { render } from '@testing-library/react';
 import React from 'react';
-import { SignOut } from '../../src/client/signout';
+import { SignOut } from '../../src/components/signout';
 
 describe('<SignOut/> - Base Path', () => {
   it('should pickup base path from __NEXT_ROUTER_BASEPATH', () => {

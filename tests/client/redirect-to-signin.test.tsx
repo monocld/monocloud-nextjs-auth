@@ -3,7 +3,7 @@
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import { fetchNoContent, wrapper } from '../client-helper';
-import { RedirectToSignIn } from '../../src/client/redirect-to-signin';
+import { RedirectToSignIn } from '../../src/components/client/redirect-to-signin';
 import { useUser } from '../../src/client/monocloud-auth-provider';
 
 export const Component = () => {
