@@ -1,5 +1,5 @@
 import { getSession } from '@monocloud/nextjs-auth';
-import { SignIn, SignOut, SignUp } from '@monocloud/nextjs-auth/client';
+import { SignIn, SignOut, SignUp } from '@monocloud/nextjs-auth/components';
 import Link from 'next/link';
 
 export const Header = async () => {
