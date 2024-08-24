@@ -402,3 +402,15 @@ export interface RedirectToSignInProps {
    */
   returnUrl?: string;
 }
+
+export interface ProtectedComponentProps {
+  /**
+   * Components that should be rendered if the user is authenticated.
+   */
+  children: React.ReactNode;
+
+  /**
+   * A fallback component that should render if the user is not authenticated.
+   */
+  onAccessDenied?: React.ReactNode;
+}

@@ -7,6 +7,8 @@ module.exports = {
     'node_modules',
     './src/index.ts',
     './src/types',
+    './src/components/components.client.tsx',
+    './src/components/components.server.tsx',
     './src/components/index.tsx',
   ],
   setupFilesAfterEnv: ['./tests/setup.ts'],
