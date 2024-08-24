@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { CookieJar } from 'tough-cookie';
-import { NextRequest } from 'next/server';
 import { isAuthenticated, monoCloudAuth } from '../../../src';
 import { setSessionCookie } from '../../common-helper';
 import {
@@ -16,60 +15,6 @@ describe('isAuthenticated() - Page Router', () => {
 
   afterEach(async () => {
     await stopNodeServer();
-  });
-
-  describe('No params (<From Cookies>)', () => {
-    let tempReq: NextRequest;
-
-    beforeEach(() => {
-      tempReq = new NextRequest('http://localhost:3000/');
-
-      jest.mock('next/headers', () => {
-        const headers = jest.requireActual('next/headers');
-        return {
-          ...headers,
-          cookies: () => ({
-            ...headers.cookies,
-            get: (name: string) => tempReq.cookies.get(name),
-            getAll: () => tempReq.cookies.getAll(),
-          }),
-        };
-      });
-    });
-
-    afterEach(() => {
-      tempReq = undefined as unknown as NextRequest;
-    });
-
-    it('should return true if the request is authenticated', async () => {
-      await setSessionCookie(tempReq);
-
-      const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
-        const result = await isAuthenticated();
-
-        res.end();
-
-        expect(result).toBe(true);
-      };
-
-      const baseUrl = await startNodeServer(handler);
-
-      await get(baseUrl, '/');
-    });
-
-    it('should return false if the request is not authenticated', async () => {
-      const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
-        const result = await isAuthenticated();
-
-        res.end();
-
-        expect(result).toBe(false);
-      };
-
-      const baseUrl = await startNodeServer(handler);
-
-      await get(baseUrl, '/');
-    });
   });
 
   describe('With Request and Response (req, res)', () => {

@@ -45,6 +45,7 @@ import {
   ProtectAppApi,
   ProtectPageApi,
   ProtectApi,
+  MonoCloudAuthOptions,
 } from '../types';
 import { isAppRouter, getMonoCloudReqRes, mergeResponse } from '../utils';
 import MonoCloudCookieRequest from '../requests/monocloud-cookie-request';
@@ -62,8 +63,11 @@ export default class MonoCloudInstance {
    * Api middleware function for handling authentication routes.
    * It checks incoming requests against predefined authentication routes
    * and calls corresponding handler functions.
+   *
+   * @param options - Options to customize the authentication handlers.
+   *
    */
-  public monoCloudAuth(): any {
+  public monoCloudAuth(options?: MonoCloudAuthOptions): any {
     return (req: NextAnyRequest, resOrCtx: NextAnyResponse) => {
       const { response } = getMonoCloudReqRes(req, resOrCtx);
 
@@ -77,18 +81,37 @@ export default class MonoCloudInstance {
 
       const route = new URL(url);
 
+      let onError;
+      if (typeof options?.onError === 'function') {
+        onError = (error: Error) =>
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          options.onError!(
+            req as any,
+            (isAppRouter(req) ? error : resOrCtx) as any,
+            (isAppRouter(req) ? undefined : error) as any
+          );
+      }
+
       switch (route.pathname) {
         case ensureLeadingSlash(routes.signIn):
-          return this.resolvedSignInHandler(req, resOrCtx);
+          return this.resolvedSignInHandler(req, resOrCtx, {
+            onError,
+          });
 
         case ensureLeadingSlash(routes.callback):
-          return this.resolvedCallbackHandler(req, resOrCtx);
+          return this.resolvedCallbackHandler(req, resOrCtx, {
+            onError,
+          });
 
         case ensureLeadingSlash(routes.userInfo):
-          return this.resolvedUserInfoHandler(req, resOrCtx);
+          return this.resolvedUserInfoHandler(req, resOrCtx, {
+            onError,
+          });
 
         case ensureLeadingSlash(routes.signOut):
-          return this.resolvedSignOutHandler(req, resOrCtx);
+          return this.resolvedSignOutHandler(req, resOrCtx, {
+            onError,
+          });
 
         default:
           response.notFound();

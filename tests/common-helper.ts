@@ -175,12 +175,14 @@ export class TestAppRes implements TestResponse {
   }
 
   async getBody(): Promise<any> {
+    let data;
     try {
-      const data = await this.res.json();
-      return data;
+      data = await this.res.text();
+      data = JSON.parse(data);
     } catch (error) {
-      return this.res.text();
+      // ignore
     }
+    return data;
   }
 }
 

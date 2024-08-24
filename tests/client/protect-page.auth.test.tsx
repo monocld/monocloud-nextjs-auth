@@ -2,18 +2,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { render, waitFor } from '@testing-library/react';
 import React from 'react';
-import { fetchNoContent, wrapper } from '../client-helper';
-import { RedirectToSignIn, useUser } from '../../src/client';
+import { Component, fetchNoContent, wrapper } from '../client-helper';
+import { protectPage } from '../../src/client';
 
-export const Component = () => {
-  const { user } = useUser();
-  if (!user) {
-    return <RedirectToSignIn />;
-  }
-  return <p>Great Success!!!</p>;
-};
-
-describe('<RedirectToSignIn/>', () => {
+describe('protectPage() - CSR - NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL', () => {
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -24,20 +16,20 @@ describe('<RedirectToSignIn/>', () => {
     });
   });
 
-  it('should redirect to the sign in endpoint', async () => {
-    const ogFetch = global.fetch;
+  it('should redirect to the custom auth endpoint set through the env', async () => {
+    process.env.NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL = '/test';
 
     fetchNoContent();
 
-    const { container } = render(<Component />, { wrapper });
+    const ProtectedComponent = protectPage(Component);
+
+    const { container } = render(<ProtectedComponent />, { wrapper });
 
     await waitFor(() => {
       expect(window.location.assign).toHaveBeenCalledWith(
-        '/api/auth/signin?return_url=https%3A%2F%2Fexample.org'
+        '/test?return_url=https%3A%2F%2Fexample.org'
       );
       expect(container.textContent).not.toContain('Great Success!!!');
     });
-
-    global.fetch = ogFetch;
   });
 });

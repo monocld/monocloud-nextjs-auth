@@ -11,6 +11,7 @@ import {
   ProtectApi,
   ProtectPage,
   RedirectToSignIn,
+  MonoCloudAuthOptions,
 } from '../types';
 
 let instance: MonoCloudInstance;
@@ -30,8 +31,12 @@ const getInstance = () => {
  * Api middleware function for handling authentication routes.
  * It checks incoming requests against predefined authentication routes
  * and calls corresponding handler functions.
+ *
+ * @param options - Options to customize authentication handlers.
+ *
  */
-export const monoCloudAuth = () => getInstance().monoCloudAuth();
+export const monoCloudAuth = (options?: MonoCloudAuthOptions) =>
+  getInstance().monoCloudAuth(options);
 
 /**
  * A middleware that protects pages and apis and handles authentication.

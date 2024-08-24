@@ -62,12 +62,15 @@ describe('SignIn Handler - Page Router', () => {
     expect(res.locationHeader.query.login_hint).toBe('username');
   });
 
-  it('custom authenticator in query should redirect to authorize endpoint with authenticator in the acr_values', async () => {
-    const res = await get(baseUrl, '/api/auth/signin?authenticator=google');
+  it('custom authenticator in query should redirect to authorize endpoint with authenticator in the authenticator_hint', async () => {
+    const res = await get(
+      baseUrl,
+      '/api/auth/signin?authenticator_hint=google'
+    );
 
     expect(res.status).toBe(302);
     expect(res.locationHeaderPathOnly).toBe('https://op.example.com/authorize');
-    expect(res.locationHeader.query.acr_values).toBe('authenticator:google');
+    expect(res.locationHeader.query.authenticator_hint).toBe('google');
   });
 
   it('should set the state cookie', async () => {

@@ -38,6 +38,45 @@ export type NextAnyResponse =
 export type NextAnyReturn = NextApiResponse | void;
 
 /**
+ * @param req - The Next.js request object.
+ * @param error - Error occured during execution of the endpoint.
+ * @returns A promise of the response or void
+ */
+type AppOnError = (
+  req: NextRequest,
+  error: Error
+) => Promise<NextResponse | void> | NextResponse | void;
+
+/**
+ * @param req - The Next.js API request object.
+ * @param res - The Next.js API response object.
+ * @param error - Error occured during execution of the endpoint.
+ * @returns A promise of void
+ */
+type PageOnError = (
+  req: NextApiRequest,
+  res: NextApiResponse,
+  error: Error
+) => Promise<void> | void;
+
+/**
+ * A function used to handle errors that occur during the signin, callback, signout and userinfo endpoint execution.
+ *
+ * `Note` - In the app router error handler, failing to return a `NextResponse` or throw an error will cause the request to hang. Same happens in the page router if you don't call `res.send()` or `res.json()` after you handle the error.
+ */
+type OnError = AppOnError | PageOnError;
+
+/**
+ * Options for `monoCloudAuth()`.
+ */
+export interface MonoCloudAuthOptions {
+  /**
+   * Error handler for signin, callback, signout and userinfo endpoints.
+   */
+  onError?: OnError;
+}
+
+/**
  * @typeparam Opts - The type of the additional options parameter (default: `any`).
  */
 export type Handler<Opts = any> = {

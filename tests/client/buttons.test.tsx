@@ -30,7 +30,7 @@ describe('<SignIn/>', () => {
     expect(anchorElements.length).toBe(1);
     expect(anchor.attributes.length).toBe(1);
     expect(href).toBe(
-      '/api/auth/signin?authenticator=google&login_hint=username&return_url=%2Ftest'
+      '/api/auth/signin?authenticator_hint=google&login_hint=username&return_url=%2Ftest'
     );
     expect(anchor.text).toBe('Sign In');
   });
