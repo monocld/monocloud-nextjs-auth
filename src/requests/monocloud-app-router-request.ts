@@ -12,7 +12,7 @@ export default class MonoCloudAppRouterRequest implements MonoCloudRequest {
   getRoute(parameter: string): string | string[] | undefined {
     return this.ctx.params?.[parameter];
   }
-  /* c8 ignore end */
+  /* c8 ignore stop */
 
   getQuery(parameter: string): string | string[] | undefined {
     const url = new URL(this.req.url);

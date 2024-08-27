@@ -331,6 +331,11 @@ export const defaultSessionCookieValue = {
   scopes: process.env.MONOCLOUD_AUTH_SCOPES,
 };
 
+export const userWithGroupsSessionCookieValue = {
+  ...defaultSessionCookieValue,
+  user: { ...defaultSessionCookieValue.user, groups: ['test'] },
+};
+
 export const setSessionCookie = async (
   reqOrCookieJar: NextRequest | CookieJar,
   currentUrl = '',

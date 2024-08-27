@@ -4,12 +4,17 @@ import { monoCloudAuth, protectPage } from '../../../src';
 import {
   defaultSessionCookieValue,
   setSessionCookie,
+  userWithGroupsSessionCookieValue,
 } from '../../common-helper';
 
-const Component = ({ user }: { user: unknown }) => {
-  expect(user).toEqual(defaultSessionCookieValue.user);
-  return Promise.resolve(React.createElement('div', {}, 'Great Success!!!'));
-};
+const Component =
+  (assertUser = true) =>
+  ({ user }: { user: unknown }) => {
+    if (assertUser) {
+      expect(user).toEqual(defaultSessionCookieValue.user);
+    }
+    return Promise.resolve(React.createElement('div', {}, 'Great Success!!!'));
+  };
 
 describe('protectPage() - App Router', () => {
   let req: NextRequest;
@@ -43,12 +48,24 @@ describe('protectPage() - App Router', () => {
   it('should render the component when session exists', async () => {
     await setSessionCookie(req);
 
-    const protectedComponent = protectPage(Component);
+    const protectedComponent = protectPage(Component());
 
     const componentResult = await protectedComponent({});
 
     expect(componentResult.type).toBe('div');
     expect(componentResult.props.children).toBe('Great Success!!!');
+  });
+
+  it('should render onAccessDenied if user is not authenticated', async () => {
+    const protectedComponent = protectPage(Component(), {
+      onAccessDenied: () =>
+        React.createElement('div', {}, 'Access Denied CUSTOM'),
+    });
+
+    const componentResult = await protectedComponent({});
+
+    expect(componentResult.type).toBe('div');
+    expect(componentResult.props.children).toBe('Access Denied CUSTOM');
   });
 
   it('should redirect to sign in when there is no session', async () => {
@@ -60,7 +77,7 @@ describe('protectPage() - App Router', () => {
       },
     }));
 
-    const protectedComponent = protectPage(Component);
+    const protectedComponent = protectPage(Component());
 
     try {
       await protectedComponent({});
@@ -80,7 +97,7 @@ describe('protectPage() - App Router', () => {
       },
     }));
 
-    const protectedComponent = protectPage(Component);
+    const protectedComponent = protectPage(Component());
 
     try {
       await protectedComponent({});
@@ -100,7 +117,7 @@ describe('protectPage() - App Router', () => {
       },
     }));
 
-    const protectedComponent = protectPage(Component, {
+    const protectedComponent = protectPage(Component(), {
       returnUrl: '/overrides',
     });
 
@@ -109,5 +126,62 @@ describe('protectPage() - App Router', () => {
     } catch (error) {
       expect(error.message).toBe('NEXT_REDIRECT');
     }
+  });
+
+  describe('groups', () => {
+    it('should render the protected component if user belongs to any of the listed groups', async () => {
+      await setSessionCookie(req, undefined, userWithGroupsSessionCookieValue);
+
+      const protectedComponent = protectPage(Component(false), {
+        groups: ['test'],
+      });
+
+      const componentResult = await protectedComponent({});
+
+      expect(componentResult.type).toBe('div');
+      expect(componentResult.props.children).toBe('Great Success!!!');
+    });
+
+    it('can customize the groups claim', async () => {
+      await setSessionCookie(req, undefined, {
+        ...defaultSessionCookieValue,
+        user: { ...defaultSessionCookieValue.user, CUSTOM_GROUPS: ['test'] },
+      });
+
+      const protectedComponent = protectPage(Component(false), {
+        groups: ['test'],
+        groupsClaim: 'CUSTOM_GROUPS',
+      });
+
+      const componentResult = await protectedComponent({});
+
+      expect(componentResult.type).toBe('div');
+      expect(componentResult.props.children).toBe('Great Success!!!');
+    });
+
+    it('should not render the protected component if user does not belongs to any of the listed groups', async () => {
+      await setSessionCookie(req, undefined, userWithGroupsSessionCookieValue);
+
+      const protectedComponent = protectPage(Component(false), {
+        groups: ['NOPE'],
+      });
+
+      const componentResult = await protectedComponent({});
+
+      expect(componentResult).toBe('Access Denied');
+    });
+
+    it('can set custom onAccessDenied component', async () => {
+      await setSessionCookie(req, undefined, userWithGroupsSessionCookieValue);
+
+      const protectedComponent = protectPage(Component(false), {
+        groups: ['NOPE'],
+        onAccessDenied: () => 'Custom ERROR' as unknown as JSX.Element,
+      });
+
+      const componentResult = await protectedComponent({});
+
+      expect(componentResult).toBe('Custom ERROR');
+    });
   });
 });

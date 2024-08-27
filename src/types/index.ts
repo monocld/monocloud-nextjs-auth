@@ -226,6 +226,12 @@ export type FuncHandler<TResult, TOptions = any> = BaseFuncHandler<TResult> & {
   (options?: TOptions): Promise<TResult>;
 };
 
+type NextMiddlewareOnAccessDenied = (
+  request: NextRequest,
+  event: NextFetchEvent,
+  user?: MonoCloudUser
+) => NextMiddlewareResult | Promise<NextMiddlewareResult>;
+
 /**
  * Options for configuring MonoCloud authentication middleware.
  */
@@ -236,8 +242,36 @@ export interface MonoCloudMiddlewareOptions {
    * or a function that returns a boolean indicating whether a request should be protected.
    */
   protectedRoutes?:
-    | (string | RegExp)[]
+    | (
+        | string
+        | RegExp
+        | {
+            /**
+             * Routes accessible by the users of specified groups
+             */
+            routes: (string | RegExp)[];
+            /**
+             * A list of group ids or group names that user should be a member of.
+             */
+            groups: string[];
+          }
+      )[]
     | ((req: NextRequest) => Promise<boolean> | boolean);
+
+  /**
+   * The name of the groups claim in the user profile. Default: `groups`.
+   */
+  groupsClaim?: string;
+
+  /**
+   * If true, user must be a member of all groups. Default: false.
+   */
+  matchAll?: boolean;
+
+  /**
+   * A middleware function called when the user is not authenticated or is not a member of the specified groups.
+   */
+  onAccessDenied?: NextMiddlewareOnAccessDenied;
 }
 
 /**
@@ -281,14 +315,26 @@ export type AppRouterApiHandlerFn = (
   res: AppRouterContext
 ) => Promise<Response> | Response;
 
-export interface ProtectAppPageOptions {
+export type ProtectAppPageOptions = {
+  /**
+   * The URL to return to after authentication.
+   */
   returnUrl?: string;
-}
 
-export interface ProtectPagePageOptions<
+  /**
+   * Alternate page handler called when the user is not authenticated or is not a member of the specified groups.
+   */
+  onAccessDenied?: (props: {
+    user?: MonoCloudUser;
+    params?: Record<string, string | string[]>;
+    searchParams?: Record<string, string | string[] | undefined>;
+  }) => Promise<JSX.Element> | JSX.Element;
+} & GroupOptions;
+
+export type ProtectPagePageOptions<
   P extends Record<string, any> = Record<string, any>,
   Q extends ParsedUrlQuery = ParsedUrlQuery,
-> {
+> = {
   /**
    * Function to fetch server-side props for the protected page handler.
    * If provided, this function will be called before rendering the protected page.
@@ -302,7 +348,19 @@ export interface ProtectPagePageOptions<
    * Specifies the URL to redirect to after authentication.
    */
   returnUrl?: string;
-}
+
+  /**
+   * Alternate `getServerSideProps` function called when the user is not authenticated or is not a member of the specified groups.
+   */
+  onAccessDenied?: ProtectPagePageOnAccessDeniedType<P, Q>;
+} & GroupOptions;
+
+export type ProtectPagePageOnAccessDeniedType<
+  P,
+  Q extends ParsedUrlQuery = ParsedUrlQuery,
+> = (
+  context: GetServerSidePropsContext<Q> & { user?: MonoCloudUser }
+) => Promise<GetServerSidePropsResult<P>> | GetServerSidePropsResult<P>;
 
 export type ProtectPagePageReturnType<
   P,
@@ -355,30 +413,68 @@ export type ProtectAppPage = (
  */
 export type ProtectPage = ProtectAppPage & ProtectPagePage;
 
+export type AppRouterApiOnAccessDeniedHandlerFn = (
+  req: NextRequest,
+  res: AppRouterContext,
+  user?: MonoCloudUser
+) => Promise<Response> | Response;
+
 export type ProtectAppApi = (
   req: NextRequest,
   ctx: AppRouterContext,
-  handler: AppRouterApiHandlerFn
+  handler: AppRouterApiHandlerFn,
+  options?: {
+    /**
+     * Alternate app router api handler called when the user is not authenticated or is not a member of the specified groups.
+     */
+    onAccessDenied?: AppRouterApiOnAccessDeniedHandlerFn;
+  } & GroupOptions
 ) => Promise<Response> | Response;
+
+export type NextPageRouterApiOnAccessDeniedHandler = (
+  req: NextApiRequest,
+  res: NextApiResponse<any>,
+  user?: MonoCloudUser
+) => unknown | Promise<unknown>;
 
 export type ProtectPageApi = (
   req: NextApiRequest,
   res: NextApiResponse,
-  handler: NextApiHandler
+  handler: NextApiHandler,
+  options?: {
+    /**
+     * Alternate page router api handler called when the user is not authenticated or is not a member of the specified groups.
+     */
+    onAccessDenied?: NextPageRouterApiOnAccessDeniedHandler;
+  } & GroupOptions
 ) => Promise<unknown>;
 
 type ProtectApiPage = (
   /**
    * The api route handler function to protect
    */
-  handler: NextApiHandler
+  handler: NextApiHandler,
+
+  options?: {
+    /**
+     * Alternate page router api handler called when the user is not authenticated or is not a member of the specified groups.
+     */
+    onAccessDenied?: NextPageRouterApiOnAccessDeniedHandler;
+  } & GroupOptions
 ) => NextApiHandler;
 
 type ProtectApiApp = (
   /**
    * The api route handler function to protect
    */
-  handler: AppRouterApiHandlerFn
+  handler: AppRouterApiHandlerFn,
+
+  options?: {
+    /**
+     * Alternate app router api handler called when the user is not authenticated or is not a member of the specified groups.
+     */
+    onAccessDenied?: AppRouterApiOnAccessDeniedHandlerFn;
+  } & GroupOptions
 ) => AppRouterApiHandlerFn;
 
 /**
@@ -410,7 +506,96 @@ export interface ProtectedComponentProps {
   children: React.ReactNode;
 
   /**
+   * A list of group names or IDs to which the user must belong to. The user should belong to atleast one of the specified groups.
+   */
+  groups?: string[];
+
+  /**
+   * Name of the claim of user's groups. default: `groups`.
+   */
+  groupsClaim?: string;
+
+  /**
+   * Flag indicating if all groups specified should be present in the users profile. default: false.
+   */
+  matchAllGroups?: boolean;
+
+  /**
    * A fallback component that should render if the user is not authenticated.
    */
   onAccessDenied?: React.ReactNode;
+}
+
+export interface IsUserInGroupOptions {
+  /**
+   * The name of the groups claim in the user profile. Default: `groups`.
+   */
+  groupsClaim?: string;
+
+  /**
+   * If true, user must be a member of all groups. Default: false.
+   */
+  matchAll?: boolean;
+}
+
+export interface GroupOptions extends IsUserInGroupOptions {
+  /**
+   * A list of group ids or group names that user should be a member of.
+   */
+  groups?: string[];
+}
+
+/**
+ * @typeparam TResult - The type of the result returned by the function.
+ * @typeparam TOptions - The type of the additional options parameter (default: `any`).
+ */
+export interface IsUserInGroupHandler {
+  /**
+   * @param req - The Next.js request object.
+   * @param ctx - The context object, which can be either an AppRouterContext or a NextResponse.
+   * @param groups - A list of group ids or group names that user should be a member of.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextRequest,
+    ctx: AppRouterContext | NextResponse,
+    groups: string[],
+    options?: IsUserInGroupOptions
+  ): Promise<boolean>;
+
+  /**
+   * @param req - The Next.js API request object.
+   * @param res - The Next.js API response object.
+   * @param groups - A list of group ids or group names that user should be a member of.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    groups: string[],
+    options?: IsUserInGroupOptions
+  ): Promise<boolean>;
+
+  /**
+   * @param req - The generic Next.js request object.
+   * @param res - The generic Next.js response object.
+   * @param groups - A list of group ids or group names that user should be a member of.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (
+    req: NextAnyRequest,
+    res: NextAnyResponse,
+    groups: string[],
+    options?: IsUserInGroupOptions
+  ): Promise<boolean>;
+
+  /**
+   * @param groups - A list of group ids or group names that user should be a member of.
+   * @param options - Additional options passed to the function.
+   * @returns A promise of the result.
+   */
+  (groups: string[], options?: IsUserInGroupOptions): Promise<boolean>;
 }

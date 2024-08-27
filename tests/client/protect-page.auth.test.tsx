@@ -21,7 +21,7 @@ describe('protectPage() - CSR - NEXT_PUBLIC_MONOCLOUD_AUTH_SIGN_IN_URL', () => {
 
     fetchNoContent();
 
-    const ProtectedComponent = protectPage(Component);
+    const ProtectedComponent = protectPage(Component());
 
     const { container } = render(<ProtectedComponent />, { wrapper });
 

@@ -12,6 +12,7 @@ import {
   ProtectPage,
   RedirectToSignIn,
   MonoCloudAuthOptions,
+  IsUserInGroupHandler,
 } from '../types';
 
 let instance: MonoCloudInstance;
@@ -85,11 +86,17 @@ export const redirectToSignIn: RedirectToSignIn = (returnUrl?: string) =>
  * @param handler - API handler function.
  * @returns Protected API handler function.
  */
-export const protectApi: ProtectApi = handler =>
-  getInstance().protectApi(handler as any) as any;
+export const protectApi: ProtectApi = (handler, options) =>
+  getInstance().protectApi(handler as any, options as any) as any;
 
 /**
  * Protects a server rendered page.
  */
 export const protectPage: ProtectPage = (...args: unknown[]) =>
   getInstance().protectPage(...(args as any)) as any;
+
+/**
+ * Checks if the user belongs to any one of the groups specified.
+ */
+export const isUserInGroup: IsUserInGroupHandler = (...args: unknown[]) =>
+  getInstance().isUserInGroup(...(args as Parameters<IsUserInGroupHandler>));

@@ -6,10 +6,14 @@ export const wrapper = ({ children }: any) => (
   <MonoCloudAuthProvider>{children}</MonoCloudAuthProvider>
 );
 
-export const Component = ({ user }: any) => {
-  expect(user).toEqual({ sub: 'sub', email: 'a@b.com' });
-  return <p>Great Success!!!</p>;
-};
+export const Component =
+  (assertUser = true) =>
+  ({ user }: any) => {
+    if (assertUser) {
+      expect(user).toEqual({ sub: 'sub', email: 'a@b.com' });
+    }
+    return <p>Great Success!!!</p>;
+  };
 
 export const fetch500 = () => {
   (global as any).fetch = jest.fn((url: string) => {
@@ -31,6 +35,23 @@ export const fetchOk = (expectedUrl = '/api/auth/userinfo') => {
         Promise.resolve({
           sub: 'sub',
           email: 'a@b.com',
+        }),
+    };
+  });
+};
+
+export const fetchOkGroups = () => {
+  (global as any).fetch = jest.fn((url: string) => {
+    expect(url).toBe('/api/auth/userinfo');
+    return {
+      status: 200,
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          sub: 'sub',
+          email: 'a@b.com',
+          groups: [{ id: 'testId', name: 'testName' }],
+          CUSTOM_GROUPS: [{ id: 'testId', name: 'testName' }],
         }),
     };
   });

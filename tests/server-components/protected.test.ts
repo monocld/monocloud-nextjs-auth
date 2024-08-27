@@ -5,11 +5,17 @@ import { Protected } from '../../src/components/protected';
 import { setSessionCookie } from '../common-helper';
 
 const ProtectedComponent = ({
+  groups,
+  groupsClaim,
   onAccessDenied,
 }: {
+  groups?: string[];
+  groupsClaim?: string;
   onAccessDenied?: React.ReactNode;
 }) => {
   return Protected({
+    groups,
+    groupsClaim,
     onAccessDenied,
     children: [React.createElement('div', {}, 'Great Success!!!')],
   }) as unknown as Promise<ReactElement>;
@@ -69,5 +75,52 @@ describe('<Protected/> - App Router (Server)', () => {
     });
 
     expect(result.props.children.props.children).toBe('Great Failure!!!');
+  });
+
+  it('should render on accessDenied when the user does not belong to any groups', async () => {
+    await setSessionCookie(req, undefined, {
+      user: {
+        sub: 'sub',
+        groups: [{ id: 'testId', name: 'testName' }],
+      },
+    });
+
+    const result = await ProtectedComponent({
+      groups: ['NOPE'],
+      onAccessDenied: React.createElement('div', {}, 'Great Failure!!!'),
+    });
+
+    expect(result.props.children.props.children).toBe('Great Failure!!!');
+  });
+
+  it('should render the protected component if the user belongs to any of the groups', async () => {
+    await setSessionCookie(req, undefined, {
+      user: {
+        sub: 'sub',
+        groups: [{ id: 'testId', name: 'testName' }],
+      },
+    });
+
+    const result = await ProtectedComponent({
+      groups: ['testId'],
+    });
+
+    expect(result.props.children[0].props.children).toBe('Great Success!!!');
+  });
+
+  it('should be able to customize the groups claim', async () => {
+    await setSessionCookie(req, undefined, {
+      user: {
+        sub: 'sub',
+        CUSTOM_GROUPS: [{ id: 'testId', name: 'testName' }],
+      },
+    });
+
+    const result = await ProtectedComponent({
+      groups: ['testId'],
+      groupsClaim: 'CUSTOM_GROUPS',
+    });
+
+    expect(result.props.children[0].props.children).toBe('Great Success!!!');
   });
 });

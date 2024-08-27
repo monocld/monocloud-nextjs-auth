@@ -22,7 +22,7 @@ describe('protectPage() - CSR - Base Path', () => {
 
     fetchNoContent('/test/api/auth/userinfo');
 
-    const ProtectedComponent = protectPage(Component);
+    const ProtectedComponent = protectPage(Component());
 
     const { container } = render(<ProtectedComponent />, { wrapper });
 

@@ -16,7 +16,7 @@ export default class MonoCloudPageRouterResponse implements MonoCloudResponse {
     if (!Array.isArray(cookies)) {
       cookies = [cookies as string];
     }
-    /* c8 ignore end */
+    /* c8 ignore stop */
 
     this.res.setHeader('Set-Cookie', [
       ...cookies.filter(cookie => !cookie.startsWith(`${cookieName}=`)),
@@ -29,7 +29,9 @@ export default class MonoCloudPageRouterResponse implements MonoCloudResponse {
   }
 
   sendJson(data: any, statusCode?: number | undefined): void {
+    /* c8 ignore start */
     this.res.status(statusCode ?? 200);
+    /* c8 ignore stop */
     this.res.json(data);
   }
 

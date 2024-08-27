@@ -1,9 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { NextFetchEvent } from 'next/dist/server/web/spec-extension/fetch-event';
 import { monoCloudAuth, monoCloudMiddleware } from '../../../src';
-import { TestAppRes, setSessionCookie } from '../../common-helper';
+import {
+  TestAppRes,
+  defaultSessionCookieValue,
+  setSessionCookie,
+  userWithGroupsSessionCookieValue,
+} from '../../common-helper';
 
-describe('MonoCloud Middleware - App Router Tests', () => {
+describe('MonoCloud Middleware', () => {
   beforeEach(() => {
     monoCloudAuth();
   });
@@ -24,6 +29,49 @@ describe('MonoCloud Middleware - App Router Tests', () => {
     expect(res.locationHeaderPathOnly).toBe(
       'https://example.org/api/auth/signin'
     );
+  });
+
+  [
+    NextResponse.json({ custom: true }),
+    { body: '{"custom":true}', status: 200 },
+  ].forEach(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (ret: any, i) => {
+      it(`can customize onAccessDenied for unauthenticated requests ${i + 1}/2`, async () => {
+        const middleware = monoCloudMiddleware({
+          onAccessDenied: () => ret,
+        });
+
+        const request = new NextRequest('http://localhost:3000/');
+
+        const response = await middleware(
+          request,
+          new NextFetchEvent({ request, page: '/' })
+        );
+
+        const res = new TestAppRes(response);
+
+        expect(res.status).toBe(200);
+        expect(await res.getBody()).toStrictEqual({ custom: true });
+      });
+    }
+  );
+
+  it('will continue the request if onAccessDenied returns falsy', async () => {
+    const middleware = monoCloudMiddleware({
+      onAccessDenied: () => null,
+    });
+
+    const request = new NextRequest('http://localhost:3000/');
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toEqual(200);
   });
 
   it('should return 401 unauthorized for api requests', async () => {
@@ -205,5 +253,148 @@ describe('MonoCloud Middleware - App Router Tests', () => {
     expect(res.locationHeaderPathOnly).toBe(
       'https://example.org/api/auth/signin'
     );
+  });
+
+  it('returns forbidden if the user does not belong to a group (Non API)', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [{ routes: ['/protected'], groups: ['NOPE'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(403);
+    expect(await res.getBody()).toBe('forbidden');
+  });
+
+  it('returns forbidden if the user does not belong to a group (API)', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [{ routes: ['/api/protected'], groups: ['NOPE'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/api/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(403);
+    expect(await res.getBody()).toStrictEqual({ message: 'forbidden' });
+  });
+
+  it('allows the user if the user belongs to the group', async () => {
+    const middleware = monoCloudMiddleware({
+      protectedRoutes: [{ routes: ['/protected'], groups: ['test'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(
+      request,
+      undefined,
+      userWithGroupsSessionCookieValue
+    );
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(200);
+  });
+
+  it('can set custom groups claim', async () => {
+    const middleware = monoCloudMiddleware({
+      groupsClaim: 'CUSTOM_GROUPS',
+      protectedRoutes: [{ routes: ['/protected'], groups: ['test'] }],
+    });
+
+    const request = new NextRequest('http://localhost:3000/protected');
+
+    await setSessionCookie(request, undefined, {
+      ...defaultSessionCookieValue,
+      user: { ...defaultSessionCookieValue.user, CUSTOM_GROUPS: ['test'] },
+    });
+
+    const response = await middleware(
+      request,
+      new NextFetchEvent({ request, page: '/protected' })
+    );
+
+    const res = new TestAppRes(response);
+
+    expect(res.status).toBe(200);
+  });
+
+  [
+    {
+      ret: { body: '{"custom":true}', status: 200 },
+      expected: { custom: true },
+      route: '/protected',
+    },
+    {
+      ret: NextResponse.json({ custom: true }),
+      expected: { custom: true },
+      route: '/protected',
+    },
+    {
+      ret: null,
+      expected: '',
+      route: '/protected',
+    },
+  ].forEach(({ ret, expected, route }, i) => {
+    it(`can set custom onAccessDenied middleware function ${i + 1}/1`, async () => {
+      const middleware = monoCloudMiddleware({
+        protectedRoutes: [
+          {
+            routes: [route],
+            groups: ['NOPE'],
+          },
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onAccessDenied: () => ret as any,
+      });
+
+      const request = new NextRequest(`http://localhost:3000${route}`);
+
+      await setSessionCookie(
+        request,
+        undefined,
+        userWithGroupsSessionCookieValue
+      );
+
+      const response = await middleware(
+        request,
+        new NextFetchEvent({ request, page: route })
+      );
+
+      const res = new TestAppRes(response);
+
+      expect(res.status).toBe(200);
+      expect(await res.getBody()).toStrictEqual(expected);
+    });
   });
 });

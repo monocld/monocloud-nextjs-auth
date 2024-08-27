@@ -10,7 +10,7 @@ export default class MonoCloudCookieRequest implements IMonoCloudCookieRequest {
     const { cookies } = require('next/headers');
     return cookies().get(name)?.value;
   }
-  /* c8 ignore end */
+  /* c8 ignore stop */
 
   getAllCookies(): Map<string, string> {
     const values = new Map<string, string>();

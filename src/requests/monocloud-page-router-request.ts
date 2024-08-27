@@ -9,7 +9,7 @@ export default class MonoCloudPageRouterRequest implements MonoCloudRequest {
   getRoute(parameter: string): string | string[] | undefined {
     return this.req.query[parameter];
   }
-  /* c8 ignore end */
+  /* c8 ignore stop */
 
   getQuery(parameter: string): string | string[] | undefined {
     return this.req.query[parameter];

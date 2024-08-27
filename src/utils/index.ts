@@ -39,7 +39,7 @@ export const getMonoCloudReqRes = (
     /* c8 ignore start */
     request = new MonoCloudPageRouterRequest(req as NextApiRequest);
     response = new MonoCloudPageRouterResponse(resOrCtx as NextApiResponse);
-    /* c8 ignore end */
+    /* c8 ignore stop */
   }
 
   return { request, response };

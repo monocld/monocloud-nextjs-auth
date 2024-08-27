@@ -25,6 +25,8 @@ import {
   MonoCloudBaseInstance,
   isAbsoluteUrl,
   ensureLeadingSlash,
+  isUserInGroup,
+  MonoCloudValidationError,
 } from '@monocloud/node-auth-core';
 import type { NextMiddlewareResult } from 'next/dist/server/web/types';
 import {
@@ -46,6 +48,8 @@ import {
   ProtectPageApi,
   ProtectApi,
   MonoCloudAuthOptions,
+  ProtectPagePageOptions,
+  IsUserInGroupOptions,
 } from '../types';
 import { isAppRouter, getMonoCloudReqRes, mergeResponse } from '../utils';
 import MonoCloudCookieRequest from '../requests/monocloud-cookie-request';
@@ -132,7 +136,7 @@ export default class MonoCloudInstance {
     }
 
     return this.protectPagePage(
-      args[0] as ProtectAppPageOptions
+      args[0] as ProtectPagePageOptions
     ) as ProtectPagePageReturnType<any, any>;
   };
 
@@ -141,6 +145,10 @@ export default class MonoCloudInstance {
       const session = await this.getSession();
 
       if (!session) {
+        if (options?.onAccessDenied) {
+          return options.onAccessDenied({ ...params });
+        }
+
         const { routes, appUrl } = this.getOptions();
 
         const { headers } = require('next/headers');
@@ -159,6 +167,22 @@ export default class MonoCloudInstance {
         return redirect(signInRoute);
       }
 
+      if (
+        options?.groups &&
+        !isUserInGroup(
+          session.user,
+          options.groups,
+          options.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+          options.matchAll
+        )
+      ) {
+        if (options.onAccessDenied) {
+          return options.onAccessDenied({ ...params, user: session.user });
+        }
+
+        return 'Access Denied';
+      }
+
       return handler({ ...params, user: session.user });
     };
   };
@@ -171,6 +195,19 @@ export default class MonoCloudInstance {
       );
 
       if (!session) {
+        if (options?.onAccessDenied) {
+          const customProps: any = await options.onAccessDenied({
+            ...context,
+          });
+
+          const props = {
+            ...(customProps ?? {}),
+            props: { ...(customProps?.props ?? {}) },
+          };
+
+          return props;
+        }
+
         const { routes, appUrl } = this.getOptions();
 
         const signInRoute = new URL(
@@ -188,6 +225,28 @@ export default class MonoCloudInstance {
             permanent: false,
           },
         };
+      }
+
+      if (
+        options?.groups &&
+        !isUserInGroup(
+          session.user,
+          options.groups,
+          options.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+          options.matchAll
+        )
+      ) {
+        const customProps: any = (await options.onAccessDenied?.({
+          ...context,
+          user: session.user,
+        })) ?? { props: { accessDenied: true } };
+
+        const props = {
+          ...customProps,
+          props: { ...(customProps.props ?? {}) },
+        };
+
+        return props;
       }
 
       const customProps: any = options?.getServerSideProps
@@ -214,30 +273,70 @@ export default class MonoCloudInstance {
   /**
    * Protects an api route handler.
    */
-  public protectApi: ProtectApi = handler => {
+  public protectApi: ProtectApi = (handler, options) => {
     return (req, resOrCtx) => {
       if (isAppRouter(req)) {
         return this.protectAppApi(
           req as NextRequest,
           resOrCtx as AppRouterContext,
-          handler as AppRouterApiHandlerFn
+          handler as AppRouterApiHandlerFn,
+          options as any
         ) as any;
       }
       return this.protectPageApi(
         req as NextApiRequest,
         resOrCtx as NextApiResponse,
-        handler as NextApiHandler
+        handler as NextApiHandler,
+        options as any
       ) as any;
     };
   };
 
-  private protectAppApi: ProtectAppApi = async (req, ctx, handler) => {
+  private protectAppApi: ProtectAppApi = async (req, ctx, handler, options) => {
     const res = new NextResponse();
 
     const session = await this.getSession(req, res);
 
     if (!session) {
-      return NextResponse.json({ message: 'unauthorized' }, { status: 401 });
+      if (options?.onAccessDenied) {
+        const result = await options.onAccessDenied(req, ctx);
+
+        if (result instanceof NextResponse) {
+          return mergeResponse([res, result]);
+        }
+
+        return mergeResponse([res, new NextResponse(result.body, result)]);
+      }
+
+      return mergeResponse([
+        res,
+        NextResponse.json({ message: 'unauthorized' }, { status: 401 }),
+      ]);
+    }
+
+    if (
+      options?.groups &&
+      !isUserInGroup(
+        session.user,
+        options.groups,
+        options.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+        options.matchAll
+      )
+    ) {
+      if (options.onAccessDenied) {
+        const result = await options.onAccessDenied(req, ctx);
+
+        if (result instanceof NextResponse) {
+          return mergeResponse([res, result]);
+        }
+
+        return mergeResponse([res, new NextResponse(result.body, result)]);
+      }
+
+      return mergeResponse([
+        res,
+        NextResponse.json({ message: 'forbidden' }, { status: 403 }),
+      ]);
     }
 
     const resp = await handler(req, ctx);
@@ -249,12 +348,39 @@ export default class MonoCloudInstance {
     return mergeResponse([res, new NextResponse(resp.body, resp)]);
   };
 
-  private protectPageApi: ProtectPageApi = async (req, res, handler) => {
+  private protectPageApi: ProtectPageApi = async (
+    req,
+    res,
+    handler,
+    options
+  ) => {
     const session = await this.getSession(req, res);
 
     if (!session) {
+      if (options?.onAccessDenied) {
+        return options.onAccessDenied(req, res);
+      }
+
       return res.status(401).json({
         message: 'unauthorized',
+      });
+    }
+
+    if (
+      options?.groups &&
+      !isUserInGroup(
+        session.user,
+        options.groups,
+        options.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+        options.matchAll
+      )
+    ) {
+      if (options.onAccessDenied) {
+        return options.onAccessDenied(req, res, session.user);
+      }
+
+      return res.status(403).json({
+        message: 'forbidden',
       });
     }
 
@@ -293,7 +419,7 @@ export default class MonoCloudInstance {
 
   private async authMiddlewareHandler(
     req: NextRequest,
-    _evt: NextFetchEvent,
+    evt: NextFetchEvent,
     options?: MonoCloudMiddlewareOptions
   ): Promise<NextMiddlewareResult> {
     const { routes, appUrl } = this.getOptions();
@@ -314,6 +440,7 @@ export default class MonoCloudInstance {
     );
 
     let isRouteProtected = true;
+    let allowedGroups: string[] | undefined;
 
     if (typeof options?.protectedRoutes === 'function') {
       isRouteProtected = await options.protectedRoutes(req);
@@ -321,9 +448,21 @@ export default class MonoCloudInstance {
       typeof options?.protectedRoutes !== 'undefined' &&
       Array.isArray(options.protectedRoutes)
     ) {
-      isRouteProtected = options.protectedRoutes.some(route =>
-        new RegExp(route).test(req.nextUrl.pathname)
-      );
+      isRouteProtected = options.protectedRoutes.some(route => {
+        if (typeof route === 'string' || route instanceof RegExp) {
+          return new RegExp(route).test(req.nextUrl.pathname);
+        }
+
+        return route.routes.some(groupRoute => {
+          const result = new RegExp(groupRoute).test(req.nextUrl.pathname);
+
+          if (result) {
+            allowedGroups = route.groups;
+          }
+
+          return result;
+        });
+      });
     }
 
     if (!isRouteProtected) {
@@ -337,6 +476,23 @@ export default class MonoCloudInstance {
     const session = await this.getSession(req, nxtResp);
 
     if (!session) {
+      if (options?.onAccessDenied) {
+        const result = await options.onAccessDenied(req, evt);
+
+        if (result instanceof NextResponse) {
+          return mergeResponse([nxtResp, result]);
+        }
+
+        if (result) {
+          return mergeResponse([
+            nxtResp,
+            new NextResponse(result.body, result),
+          ]);
+        }
+
+        return NextResponse.next(nxtResp);
+      }
+
       if (req.nextUrl.pathname.startsWith('/api')) {
         return mergeResponse([
           nxtResp,
@@ -347,11 +503,51 @@ export default class MonoCloudInstance {
       const signInRoute = new URL(
         `${appUrl}${ensureLeadingSlash(routes.signIn)}`
       );
+
       signInRoute.searchParams.set(
         'return_url',
         req.nextUrl.pathname + req.nextUrl.search
       );
+
       return mergeResponse([nxtResp, NextResponse.redirect(signInRoute)]);
+    }
+
+    const groupsClaim =
+      options?.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM;
+
+    const onAccessDenied = options?.onAccessDenied;
+
+    if (
+      allowedGroups &&
+      !isUserInGroup(session.user, allowedGroups, groupsClaim)
+    ) {
+      if (onAccessDenied) {
+        const result = await onAccessDenied(req, evt, session.user);
+
+        if (result instanceof NextResponse) {
+          return mergeResponse([nxtResp, result]);
+        }
+
+        if (result) {
+          return mergeResponse([
+            nxtResp,
+            new NextResponse(result.body, result),
+          ]);
+        }
+
+        return NextResponse.next(nxtResp);
+      }
+
+      if (req.nextUrl.pathname.startsWith('/api')) {
+        return mergeResponse([
+          nxtResp,
+          NextResponse.json({ message: 'forbidden' }, { status: 403 }),
+        ]);
+      }
+
+      return new NextResponse(`forbidden`, {
+        status: 403,
+      });
     }
 
     return NextResponse.next(nxtResp);
@@ -408,6 +604,72 @@ export default class MonoCloudInstance {
 
     redirect(
       `${appUrl}${routes.signIn}?return_url=${encodeURIComponent(returnUrl?.trim().length ? returnUrl : path)}`
+    );
+  }
+
+  /**
+   * Checks if the user belongs to any one of the groups specified.
+   */
+  public async isUserInGroup(...args: any[]) {
+    let request: IMonoCloudCookieRequest | undefined;
+    let response: IMonoCloudCookieResponse | undefined;
+    let groups: string[] | undefined;
+    let options: IsUserInGroupOptions | undefined;
+
+    if (args.length === 4) {
+      const req = args[0] as NextApiRequest | NextRequest;
+      const res = args[1] as NextApiResponse | AppRouterContext;
+      groups = args[2] as string[];
+      options = args[3] as IsUserInGroupOptions;
+
+      const reqRes = getMonoCloudReqRes(req, res);
+
+      request = reqRes.request;
+      response = reqRes.response;
+    }
+
+    if (args.length === 3) {
+      const req = args[0] as NextApiRequest | NextRequest;
+      const res = args[1] as NextApiResponse | AppRouterContext;
+      groups = args[2] as string[];
+
+      const reqRes = getMonoCloudReqRes(req, res);
+
+      request = reqRes.request;
+      response = reqRes.response;
+    }
+
+    if (args.length === 2) {
+      request = new MonoCloudCookieRequest();
+      response = new MonoCloudCookieResponse();
+
+      groups = args[0] as string[];
+      options = args[1] as IsUserInGroupOptions;
+    }
+
+    if (args.length === 1) {
+      request = new MonoCloudCookieRequest();
+      response = new MonoCloudCookieResponse();
+
+      groups = args[0] as string[];
+    }
+
+    if (!Array.isArray(groups) || !request || !response) {
+      throw new MonoCloudValidationError(
+        'Invalid parameters passed to isUserInGroup()'
+      );
+    }
+
+    const session = await this.baseInstance.getSession(request, response);
+    if (!session) {
+      return false;
+    }
+
+    return isUserInGroup(
+      session.user,
+      groups,
+      options?.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+      options?.matchAll
     );
   }
 
