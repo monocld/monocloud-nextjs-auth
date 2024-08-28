@@ -20,8 +20,9 @@ let instance: MonoCloudInstance;
 const getInstance = () => {
   if (!instance) {
     instance = new MonoCloudInstance({
-      userAgent: 'monocloud/nextjs-auth',
-      debugger: 'monocloud:nextjs-auth',
+      // eslint-disable-next-line prefer-template
+      userAgent: SDK_NAME + '@' + SDK_VERSION,
+      debugger: SDK_DEBUGGER_NAME,
     });
   }
 

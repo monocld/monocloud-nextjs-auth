@@ -87,7 +87,7 @@ export const MonoCloudAuthProvider = ({
         ...state,
         isLoading: false,
         isAuthenticated: false,
-        error,
+        error: error as Error,
         user: undefined,
       }));
     }
