@@ -1,0 +1,9 @@
+{
+  "sideEffects": false,
+  "imports": {
+    "#components": {
+      "react-server": "./components/components.server.js",
+      "default": "./components/components.client.js"
+    }
+  }
+}
