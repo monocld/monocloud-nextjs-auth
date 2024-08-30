@@ -482,12 +482,19 @@ type ProtectApiApp = (
  */
 export type ProtectApi = ProtectApiApp & ProtectApiPage;
 
+export type ProtectOptions = {
+  /**
+   * The url where the user will be redirected to after sign in.
+   */
+  returnUrl?: string;
+} & GroupOptions;
+
 /**
- * Redirects user to sign in page.
+ * Redirects user to sign in page if not already authenticated.
  *
- * @param returnUrl - The url where the user will be redirected to after sign in.
+ * @param options - The Protect options
  */
-export type RedirectToSignIn = (returnUrl?: string) => Promise<void>;
+export type Protect = (options?: ProtectOptions) => Promise<void>;
 
 /**
  * Props for the `<RedirectToSignIn />` Component

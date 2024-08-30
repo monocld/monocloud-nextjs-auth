@@ -24,6 +24,6 @@ export {
   isAuthenticated,
   protectApi,
   protectPage,
-  redirectToSignIn,
+  protect,
   isUserInGroup,
 } from './instance/initialize';

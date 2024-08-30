@@ -10,7 +10,7 @@ import {
   MonoCloudMiddleware,
   ProtectApi,
   ProtectPage,
-  RedirectToSignIn,
+  Protect,
   MonoCloudAuthOptions,
   IsUserInGroupHandler,
 } from '../types';
@@ -78,8 +78,7 @@ export const isAuthenticated: BaseFuncHandler<boolean> = (...args: unknown[]) =>
  * Redirects the user to sign-in if not authenticated.
  * **Note: This function only works on App Router.**
  */
-export const redirectToSignIn: RedirectToSignIn = (returnUrl?: string) =>
-  getInstance().redirectToSignIn(returnUrl);
+export const protect: Protect = options => getInstance().protect(options);
 
 /**
  * Protects an API handler.

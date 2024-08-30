@@ -5,6 +5,7 @@ module.exports = {
   preset: 'ts-jest/presets/js-with-ts',
   coveragePathIgnorePatterns: [
     'node_modules',
+    './src/global.d.ts',
     './src/index.ts',
     './src/types',
     './src/components/components.client.tsx',

@@ -50,6 +50,7 @@ import {
   MonoCloudAuthOptions,
   ProtectPagePageOptions,
   IsUserInGroupOptions,
+  ProtectOptions,
 } from '../types';
 import { isAppRouter, getMonoCloudReqRes, mergeResponse } from '../utils';
 import MonoCloudCookieRequest from '../requests/monocloud-cookie-request';
@@ -582,28 +583,40 @@ export default class MonoCloudInstance {
    * Redirects the user to sign-in if not authenticated.
    * **Note: This function only works on App Router.**
    */
-  public async redirectToSignIn(returnUrl?: string): Promise<void> {
+  public async protect(options?: ProtectOptions): Promise<void> {
     const { routes, appUrl } = this.baseInstance.getOptions();
     let path;
     try {
       const session = await this.getSession();
 
-      if (session) {
+      if (session && !options?.groups) {
+        return;
+      }
+
+      if (
+        session &&
+        options &&
+        options.groups &&
+        isUserInGroup(
+          session.user,
+          options.groups,
+          options.groupsClaim ?? process.env.MONOCLOUD_AUTH_GROUPS_CLAIM,
+          options.matchAll
+        )
+      ) {
         return;
       }
 
       const { headers } = require('next/headers');
       path = headers().get('x-monocloud-path') ?? '/';
     } catch (error) {
-      throw new Error(
-        'redirectToSignIn() can only be used in App Router project'
-      );
+      throw new Error('protect() can only be used in App Router project');
     }
 
     const { redirect } = require('next/navigation');
 
     redirect(
-      `${appUrl}${routes.signIn}?return_url=${encodeURIComponent(returnUrl?.trim().length ? returnUrl : path)}`
+      `${appUrl}${routes.signIn}?return_url=${encodeURIComponent(options?.returnUrl?.trim().length ? options.returnUrl : path)}`
     );
   }
 

@@ -1,14 +1,18 @@
 import React from 'react';
 import { NextRequest } from 'next/server';
-import { monoCloudAuth, redirectToSignIn } from '../../../src';
-import { setSessionCookie } from '../../common-helper';
+import { monoCloudAuth, protect } from '../../../src';
+import {
+  defaultSessionCookieValue,
+  setSessionCookie,
+  userWithGroupsSessionCookieValue,
+} from '../../common-helper';
 
 const Component = async () => {
-  await redirectToSignIn();
+  await protect();
   return React.createElement('div', {}, 'Great Success!!!');
 };
 
-describe('redirectToSignIn() - App Router', () => {
+describe('protect() - App Router', () => {
   let req: NextRequest;
 
   beforeEach(() => {
@@ -46,6 +50,37 @@ describe('redirectToSignIn() - App Router', () => {
     expect(componentResult.props.children).toBe('Great Success!!!');
   });
 
+  it('should render the component when the use is in the specified groups', async () => {
+    await setSessionCookie(req, undefined, userWithGroupsSessionCookieValue);
+
+    const ComponentWithGroups = async () => {
+      await protect({ groups: ['test'] });
+      return React.createElement('div', {}, 'Great Success!!!');
+    };
+
+    const componentResult: JSX.Element = await ComponentWithGroups();
+
+    expect(componentResult.type).toBe('div');
+    expect(componentResult.props.children).toBe('Great Success!!!');
+  });
+
+  it('can customize groups claim', async () => {
+    await setSessionCookie(req, undefined, {
+      ...defaultSessionCookieValue,
+      user: { ...defaultSessionCookieValue.user, CUSTOM_GROUPS: ['test'] },
+    });
+
+    const ComponentWithGroups = async () => {
+      await protect({ groups: ['test'], groupsClaim: 'CUSTOM_GROUPS' });
+      return React.createElement('div', {}, 'Great Success!!!');
+    };
+
+    const componentResult: JSX.Element = await ComponentWithGroups();
+
+    expect(componentResult.type).toBe('div');
+    expect(componentResult.props.children).toBe('Great Success!!!');
+  });
+
   it('should redirect to sign in when there is no session', async () => {
     jest.mock('next/navigation', () => ({
       redirect: (url: URL) => {
@@ -57,6 +92,28 @@ describe('redirectToSignIn() - App Router', () => {
 
     try {
       await Component();
+    } catch (error) {
+      expect(error.message).toBe('NEXT_REDIRECT');
+    }
+  });
+
+  it('should redirect to sign in when the user does not belong to any specified groups', async () => {
+    jest.mock('next/navigation', () => ({
+      redirect: (url: URL) => {
+        expect(url.toString()).toBe(
+          'https://example.org/api/auth/signin?return_url=%2F'
+        );
+      },
+    }));
+
+    try {
+      await setSessionCookie(req, undefined, userWithGroupsSessionCookieValue);
+
+      const ComponentWithGroups = async () => {
+        await protect({ groups: ['NOPE'] });
+        return React.createElement('div', {}, 'Great Success!!!');
+      };
+      await ComponentWithGroups();
     } catch (error) {
       expect(error.message).toBe('NEXT_REDIRECT');
     }
@@ -92,7 +149,7 @@ describe('redirectToSignIn() - App Router', () => {
     }));
 
     const ComponentWithRedirect = async () => {
-      await redirectToSignIn('/overrides');
+      await protect({ returnUrl: '/overrides' });
       return React.createElement('div', {}, 'Great Success!!!');
     };
 

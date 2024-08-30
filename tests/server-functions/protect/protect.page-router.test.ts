@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextApiRequest, NextApiResponse } from 'next';
-import { monoCloudAuth, redirectToSignIn } from '../../../src';
+import { monoCloudAuth, protect } from '../../../src';
 import {
   get,
   startNodeServer,
   stopNodeServer,
 } from '../../page-router-helpers';
 
-describe('redirectToSignIn() - Page Router', () => {
-  it('should throw "redirectToSignIn() can only be used in App Router project"', async () => {
+describe('protect() - Page Router', () => {
+  it('should throw "protect() can only be used in App Router project"', async () => {
     monoCloudAuth();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getServerSideProps = async (_context: any) => {
-      await redirectToSignIn();
+      await protect();
       return Promise.resolve({ props: { custom: 'prop' } });
     };
 
@@ -28,7 +28,7 @@ describe('redirectToSignIn() - Page Router', () => {
         throw new Error();
       } catch (error) {
         expect(error.message).toBe(
-          'redirectToSignIn() can only be used in App Router project'
+          'protect() can only be used in App Router project'
         );
       }
 
