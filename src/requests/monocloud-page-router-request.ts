@@ -15,8 +15,8 @@ export default class MonoCloudPageRouterRequest implements MonoCloudRequest {
     return this.req.query[parameter];
   }
 
-  getCookie(name: string): string | undefined {
-    return this.req.cookies[name];
+  getCookie(name: string): Promise<string | undefined> {
+    return Promise.resolve(this.req.cookies[name]);
   }
 
   getRawRequest(): Promise<{
@@ -31,7 +31,7 @@ export default class MonoCloudPageRouterRequest implements MonoCloudRequest {
     });
   }
 
-  getAllCookies(): Map<string, string> {
+  getAllCookies(): Promise<Map<string, string>> {
     const values = new Map<string, string>();
     const { cookies } = this.req;
     Object.keys(cookies).forEach(x => {
@@ -40,6 +40,6 @@ export default class MonoCloudPageRouterRequest implements MonoCloudRequest {
         values.set(x, val);
       }
     });
-    return values;
+    return Promise.resolve(values);
   }
 }

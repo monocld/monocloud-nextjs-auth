@@ -8,8 +8,13 @@ import { NextResponse } from 'next/server';
 export default class MonoCloudAppRouterResponse implements MonoCloudResponse {
   constructor(public res: NextResponse) {}
 
-  setCookie(cookieName: string, value: string, options: CookieOptions): void {
+  setCookie(
+    cookieName: string,
+    value: string,
+    options: CookieOptions
+  ): Promise<void> {
     this.res.cookies.set(cookieName, value, options);
+    return Promise.resolve();
   }
 
   redirect(url: string, statusCode: number | undefined = 302): void {

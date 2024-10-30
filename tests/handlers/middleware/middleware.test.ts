@@ -20,7 +20,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -46,7 +50,11 @@ describe('MonoCloud Middleware', () => {
 
         const response = await middleware(
           request,
-          new NextFetchEvent({ request, page: '/' })
+          new NextFetchEvent({
+            request,
+            context: { waitUntil: () => Promise.resolve() },
+            page: '/',
+          })
         );
 
         const res = new TestAppRes(response);
@@ -66,7 +74,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -81,7 +93,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -97,7 +113,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/path' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/path',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -123,7 +143,11 @@ describe('MonoCloud Middleware', () => {
 
       const response = await middleware(
         request,
-        new NextFetchEvent({ request, page: endpoint })
+        new NextFetchEvent({
+          request,
+          context: { waitUntil: () => Promise.resolve() },
+          page: endpoint,
+        })
       );
 
       const res = new TestAppRes(response);
@@ -140,7 +164,11 @@ describe('MonoCloud Middleware', () => {
     const skippedRequest = new NextRequest('http://localhost:3000/skipped');
     const skippedResponse = await middleware(
       skippedRequest,
-      new NextFetchEvent({ request: skippedRequest, page: '/skipped' })
+      new NextFetchEvent({
+        request: skippedRequest,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/skipped',
+      })
     );
     const skippedRes = new TestAppRes(skippedResponse);
     expect(skippedRes.status).not.toBe(307);
@@ -148,7 +176,11 @@ describe('MonoCloud Middleware', () => {
     const protectedRequest = new NextRequest('http://localhost:3000/protected');
     const protectedResponse = await middleware(
       protectedRequest,
-      new NextFetchEvent({ request: protectedRequest, page: '/protected' })
+      new NextFetchEvent({
+        request: protectedRequest,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/protected',
+      })
     );
     const protectedRes = new TestAppRes(protectedResponse);
     expect(protectedRes.status).toBe(307);
@@ -164,7 +196,11 @@ describe('MonoCloud Middleware', () => {
         const skippedRequest = new NextRequest('http://localhost:3000/skipped');
         const skippedResponse = await middleware(
           skippedRequest,
-          new NextFetchEvent({ request: skippedRequest, page: '/skipped' })
+          new NextFetchEvent({
+            request: skippedRequest,
+            context: { waitUntil: () => Promise.resolve() },
+            page: '/skipped',
+          })
         );
         const skippedRes = new TestAppRes(skippedResponse);
         expect(skippedRes.status).not.toBe(307);
@@ -174,7 +210,11 @@ describe('MonoCloud Middleware', () => {
         );
         const protectedResponse = await middleware(
           protectedRequest,
-          new NextFetchEvent({ request: protectedRequest, page: endpoint })
+          new NextFetchEvent({
+            request: protectedRequest,
+            context: { waitUntil: () => Promise.resolve() },
+            page: endpoint,
+          })
         );
         const protectedRes = new TestAppRes(protectedResponse);
         expect(protectedRes.status).toBe(307);
@@ -192,7 +232,11 @@ describe('MonoCloud Middleware', () => {
     const skippedRequest = new NextRequest('http://localhost:3000/skipped');
     const skippedResponse = await middleware(
       skippedRequest,
-      new NextFetchEvent({ request: skippedRequest, page: '/skipped' })
+      new NextFetchEvent({
+        request: skippedRequest,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/skipped',
+      })
     );
     const skippedRes = new TestAppRes(skippedResponse);
     expect(skippedRes.status).not.toBe(307);
@@ -204,6 +248,7 @@ describe('MonoCloud Middleware', () => {
       protectedRequest,
       new NextFetchEvent({
         request: protectedRequest,
+        context: { waitUntil: () => Promise.resolve() },
         page: '/something/protected',
       })
     );
@@ -223,7 +268,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/test' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/test',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -244,7 +293,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await customMiddleware(
       request,
-      new NextFetchEvent({ request, page: '/test' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/test',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -270,7 +323,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/protected' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/protected',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -294,7 +351,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/protected' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/protected',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -318,7 +379,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/protected' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/protected',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -341,7 +406,11 @@ describe('MonoCloud Middleware', () => {
 
     const response = await middleware(
       request,
-      new NextFetchEvent({ request, page: '/protected' })
+      new NextFetchEvent({
+        request,
+        context: { waitUntil: () => Promise.resolve() },
+        page: '/protected',
+      })
     );
 
     const res = new TestAppRes(response);
@@ -388,7 +457,11 @@ describe('MonoCloud Middleware', () => {
 
       const response = await middleware(
         request,
-        new NextFetchEvent({ request, page: route })
+        new NextFetchEvent({
+          request,
+          context: { waitUntil: () => Promise.resolve() },
+          page: route,
+        })
       );
 
       const res = new TestAppRes(response);

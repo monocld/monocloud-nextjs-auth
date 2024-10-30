@@ -153,7 +153,7 @@ export default class MonoCloudInstance {
         const { routes, appUrl } = this.getOptions();
 
         const { headers } = require('next/headers');
-        const path = headers().get('x-monocloud-path');
+        const path = (await headers()).get('x-monocloud-path');
 
         const signInRoute = new URL(
           `${appUrl}${ensureLeadingSlash(routes.signIn)}`
@@ -165,7 +165,7 @@ export default class MonoCloudInstance {
         );
 
         const { redirect } = require('next/navigation');
-        return redirect(signInRoute);
+        return redirect(signInRoute.toString());
       }
 
       if (
@@ -181,7 +181,7 @@ export default class MonoCloudInstance {
           return options.onAccessDenied({ ...params, user: session.user });
         }
 
-        return 'Access Denied';
+        return 'Access Denied' as unknown as JSX.Element;
       }
 
       return handler({ ...params, user: session.user });
@@ -608,7 +608,7 @@ export default class MonoCloudInstance {
       }
 
       const { headers } = require('next/headers');
-      path = headers().get('x-monocloud-path') ?? '/';
+      path = (await headers()).get('x-monocloud-path') ?? '/';
     } catch (error) {
       throw new Error('protect() can only be used in App Router project');
     }

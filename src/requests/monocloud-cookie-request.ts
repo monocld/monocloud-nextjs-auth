@@ -6,20 +6,19 @@ import type { IMonoCloudCookieRequest } from '@monocloud/node-auth-core';
 
 export default class MonoCloudCookieRequest implements IMonoCloudCookieRequest {
   /* c8 ignore start */
-  getCookie(name: string): string | undefined {
+  async getCookie(name: string): Promise<string | undefined> {
     const { cookies } = require('next/headers');
-    return cookies().get(name)?.value;
+    return (await cookies()).get(name)?.value;
   }
   /* c8 ignore stop */
 
-  getAllCookies(): Map<string, string> {
+  async getAllCookies(): Promise<Map<string, string>> {
     const values = new Map<string, string>();
     const { cookies } = require('next/headers');
-    cookies()
-      .getAll()
-      .forEach((x: any) => {
-        values.set(x.name, x.value);
-      });
+
+    (await cookies()).getAll().forEach((x: any) => {
+      values.set(x.name, x.value);
+    });
     return values;
   }
 }

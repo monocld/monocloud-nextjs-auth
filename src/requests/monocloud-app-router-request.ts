@@ -19,8 +19,8 @@ export default class MonoCloudAppRouterRequest implements MonoCloudRequest {
     return url.searchParams.get(parameter) ?? undefined;
   }
 
-  getCookie(name: string): string | undefined {
-    return this.req.cookies.get(name)?.value;
+  getCookie(name: string): Promise<string | undefined> {
+    return Promise.resolve(this.req.cookies.get(name)?.value);
   }
 
   async getRawRequest(): Promise<{
@@ -35,11 +35,11 @@ export default class MonoCloudAppRouterRequest implements MonoCloudRequest {
     };
   }
 
-  getAllCookies(): Map<string, string> {
+  getAllCookies(): Promise<Map<string, string>> {
     const values = new Map<string, string>();
     this.req.cookies.getAll().forEach(x => {
       values.set(x.name, x.value);
     });
-    return values;
+    return Promise.resolve(values);
   }
 }

@@ -13,10 +13,14 @@ let isWarned = false;
 export default class MonoCloudCookieResponse
   implements IMonoCloudCookieResponse
 {
-  setCookie(cookieName: string, value: string, options: CookieOptions): void {
+  async setCookie(
+    cookieName: string,
+    value: string,
+    options: CookieOptions
+  ): Promise<void> {
     try {
       const { cookies } = require('next/headers');
-      cookies().set(cookieName, value, options);
+      (await cookies()).set(cookieName, value, options);
     } catch (e: any) {
       if (!isWarned) {
         console.warn(e.message);
