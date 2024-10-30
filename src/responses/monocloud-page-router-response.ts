@@ -9,7 +9,11 @@ import { serialize } from 'cookie';
 export default class MonoCloudPageRouterResponse implements MonoCloudResponse {
   constructor(public readonly res: NextApiResponse) {}
 
-  setCookie(cookieName: string, value: string, options: CookieOptions): void {
+  setCookie(
+    cookieName: string,
+    value: string,
+    options: CookieOptions
+  ): Promise<void> {
     let cookies = this.res.getHeader('Set-Cookie') || [];
 
     /* c8 ignore start */
@@ -22,6 +26,8 @@ export default class MonoCloudPageRouterResponse implements MonoCloudResponse {
       ...cookies.filter(cookie => !cookie.startsWith(`${cookieName}=`)),
       serialize(cookieName, value, options),
     ]);
+
+    return Promise.resolve();
   }
 
   redirect(url: string, statusCode?: number | undefined): void {
