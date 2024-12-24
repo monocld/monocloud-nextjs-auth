@@ -3,7 +3,7 @@
 
 'use client';
 
-import React, { ComponentType, useEffect } from 'react';
+import React, { ComponentType, useEffect, JSX } from 'react';
 import { isUserInGroup, type MonoCloudUser } from '@monocloud/node-auth-core';
 import { useUser } from './monocloud-auth-provider';
 import { GroupOptions } from '../types';

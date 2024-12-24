@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { JSX } from 'react';
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 import type {
   NextApiHandler,

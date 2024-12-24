@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import { NextRequest } from 'next/server';
 import { monoCloudAuth, protect } from '../../../src';
 import {

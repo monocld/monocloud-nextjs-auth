@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React, { JSX } from 'react';
 import { NextRequest } from 'next/server';
 import { monoCloudAuth } from '../../src';
 import { Protected } from '../../src/components/protected';
@@ -18,7 +18,7 @@ const ProtectedComponent = ({
     groupsClaim,
     onAccessDenied,
     children: [React.createElement('div', {}, 'Great Success!!!')],
-  }) as unknown as Promise<ReactElement>;
+  }) as unknown as Promise<JSX.Element>;
 };
 
 describe('<Protected/> - App Router (Server)', () => {
